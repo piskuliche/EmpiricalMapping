@@ -1,5 +1,5 @@
 import numpy as np
-from emp_setup import MapSetup
+from empmap.emp_setup import MapSetup
 
 
 def test_code():

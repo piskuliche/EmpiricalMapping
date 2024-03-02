@@ -1,4 +1,4 @@
-from constants import ConstantsManagement
+from empmap.constants import ConstantsManagement
 import numpy as np
 from scipy.linalg import eigh
 

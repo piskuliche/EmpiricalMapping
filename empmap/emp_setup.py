@@ -1,7 +1,7 @@
 import numpy as np
 import MDAnalysis as mda
 import os
-from constants import ConstantsManagement
+from empmap.constants import ConstantsManagement
 
 
 class MapSetup:
