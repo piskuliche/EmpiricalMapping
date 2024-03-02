@@ -1,0 +1,14 @@
+bin/
+*/__pycache__/
+*/__pycache__/*
+traj_ex/*
+build/
+settings.json
+*.egg*
+dependency_links.txt
+PKG-INFO
+dist/
+SOURCES.txt
+top_level.txt
+RDFDeriv/__pycache__/energy_class.cpython-39.pyc
+RDFDeriv/__pycache__/setup_rdf.cpython-39.pyc
