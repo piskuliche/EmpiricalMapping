@@ -1,6 +1,6 @@
 import numpy as np
 from empmap.constants import ConstantsManagement
-from poly_fit import poly_fit_selector, mu_fit_selector
+from empmap.poly_fit import poly_fit_selector, mu_fit_selector
 from scipy.optimize import curve_fit
 
 
