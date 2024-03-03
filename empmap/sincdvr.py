@@ -11,6 +11,13 @@ class DVR:
     dipole is fit to a polynomial. The vibrational frequencies and dipole matrix elements
     are calculated using the eigenvalues and eigenvectors of the Hamiltonian matrix.
 
+    For more infomration on Discrete Variable Representations, Check out the following paper:
+
+    Colber, Miller, A novel discrete variable representation for quantum mechanical 
+        reactive scattering via the S-matrix Kohn method, Journal of Chemical Physics,
+        96, pp. 1982-1991 (1992).
+
+
 
 
     Attributes:
@@ -39,7 +46,7 @@ class DVR:
 
     """
 
-    def __init__(self, pot1d, emax=0.7, xmax=1.4, mass1=1.0, mass2=1.0, reduced_mass=None):
+    def __init__(self, pot1d, emax=0.7, xmax=1.4, mass1=1.0, mass2=1.0, reduced_mass=None, num_grid_per_broglie=10):
         """ Initialize the DVR class
 
         Args:
@@ -49,6 +56,7 @@ class DVR:
             mass1 (float): The mass of the first atom (g/mol) [Default: 1.0] 
             mass2 (float): The mass of the second atom (g/mol) [Default: 1.0]
             reduced_mass (float): The reduced mass (g/mol) [Default: None] If None, calculated in the class. Converted to au in the class
+            num_grid_per_broglie (int): The number of grid points per deBroglie wavelength [default=10]
 
         Returns:
             None
@@ -61,6 +69,7 @@ class DVR:
             self.reduced_mass = reduced_mass * self.constants.aupergmol
         self.emax = emax/self.constants.evperau
         self.xmax = xmax/self.constants.angperau
+        self.num_grid_per_broglie = self.num_grid_per_broglie
         self.pot1d = pot1d
         self._setup_grid()
         self.ke_pref = self._kinetic_prefactor()
@@ -79,6 +88,8 @@ class DVR:
         print("Reduced Mass: %10.5f au" % self.reduced_mass)
         print("Energy Cutoff: %10.5f au" % self.emax)
         print("Maximum Position: %10.5f au" % self.xmax)
+        print("Number of grid points per deBroglie wavelength: %d" %
+              self.num_grid_per_broglie)
         print("Solved? %s" % hasattr(self, 'evals'))
 
         print("w01: ", self.w01)
@@ -120,6 +131,10 @@ class DVR:
 
         self.x01 = np.dot(psi0, xpsi1)
         self.x12 = np.dot(psi2, xpsi1)
+
+        self.psi = [psi0, psi1, psi2]
+        self.muspi1 = mupsi1
+        self.xpsi1 = xpsi1
 
         return
 
@@ -183,7 +198,8 @@ class DVR:
         """
         # Set up the grid spacing
         self.delr = 2.0 * self.constants.PI / \
-            (np.sqrt(2.0 * self.reduced_mass * self.emax))
+            (np.sqrt(2.0 * self.reduced_mass * self.emax)*self.num_grid_per_broglie)
+
         # The number of grid points.
         nraw = int(np.ceil(self.xmax/self.delr))
         xmax_mod = self.delr*np.ceil(self.xmax/self.delr)
@@ -207,6 +223,17 @@ class DVR:
         """ 
         Construct the hamiltionian matrix for the DVR
 
+        Note: 
+
+            H[i,i] = V[i] + ke_pref * (pi^2/3 - 0.5/(i+1)^2)
+            H[i,j] = (-1.0)^((i+1)-(j+1))*2.0* ke_pref * (1/((i+1)-(j+1))^2 - 1.0/(i+1 + j+1)^2)
+
+            Where: 
+            ke_pref = 1/(2 * mu * delr^2)
+
+            These equations span the ones in Colbert Miller on p. 1989-1990. The complicatedness of 
+            these equations in part comes from the fact that python uses 0, rather than 1, indexing.
+
         Args:
             None
 
@@ -220,8 +247,8 @@ class DVR:
             h[i, i] += self.vgrid[i] + self.ke_pref * \
                 (np.pi**2/3.0 - 0.5/float(i+1)**2)
             for j in range(i):
-                dtmp = (i+1) - (j+1)
-                ctmp = float(i+1 + j+1)
+                dtmp = (i+1) - (j+1)  # i - j
+                ctmp = float(i+1 + j+1)  # i+j+2
                 h[i, j] = (-1.0)**dtmp*2.0*self.ke_pref * \
                     (1.0/float(dtmp)**2 - 1.0/ctmp**2)
                 h[j, i] = h[i, j]
