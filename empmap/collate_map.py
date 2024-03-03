@@ -35,14 +35,18 @@ class EmpiricalMap:
     def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999):
         all_dvrs = []
         for file in self.file_list:
-            full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
-            pot1d = Potential1D(full_prefix + "rOHs.dat", full_prefix + "energies.dat",
-                                full_prefix + "dipoles.dat", full_prefix + "eOHs.dat")
-            pot1d.fit_potential_to_poly(3)
-            pot1d.fit_dipole_to_poly(2)
-            dvr = DVR(pot1d, emax=emax, xmax=xmax, mass1=mass1, mass2=mass2)
-            dvr.do_calculation()
-            all_dvrs.append(dvr)
+            try:
+                full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
+                pot1d = Potential1D(full_prefix + "rOHs.dat", full_prefix + "energies.dat",
+                                    full_prefix + "dipoles.dat", full_prefix + "eOHs.dat")
+                pot1d.fit_potential_to_poly(3)
+                pot1d.fit_dipole_to_poly(2)
+                dvr = DVR(pot1d, emax=emax, xmax=xmax,
+                          mass1=mass1, mass2=mass2)
+                dvr.do_calculation()
+                all_dvrs.append(dvr)
+            except:
+                print("Failed to load DVR for file %d" % file)
         return all_dvrs
 
     def _obtain_eproj(self):
