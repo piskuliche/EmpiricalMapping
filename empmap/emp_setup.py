@@ -285,6 +285,7 @@ class MapSetup:
         # Importantly, it also wraps the atoms around the droplet, so you don't end up with the droplet split
         # across the box. Some care needs to be taken here - you don't want your droplet to be larger
         # than the box. If that happens, there will be a problem.
+        resid = self._wrap_to_resid(resid, resid, Lbox)
         inner = self._wrap_to_resid(resid, inner, Lbox)
         outer = self._wrap_to_resid(resid, outer, Lbox)
 
