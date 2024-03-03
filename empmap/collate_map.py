@@ -25,16 +25,17 @@ class EmpiricalMap:
             self.w12.append(dvr.w12)
 
     def build_base_data(self, **kwargs):
-        dvrs = self._obtain_dvrs(**kwargs)
+        dvrs, success = self._obtain_dvrs(**kwargs)
         self.build_from_dvr(dvrs)
-        self.Eproj = self._obtain_eproj()
+        self.Eproj = self._obtain_eproj()[success]
         print(np.average(self.w01))
         print(np.average(self.w12))
         return
 
     def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999):
         all_dvrs = []
-        for file in self.file_list:
+        success = []
+        for i, file in enumerate(self.file_list):
             try:
                 full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
                 pot1d = Potential1D(full_prefix + "rOHs.dat", full_prefix + "energies.dat",
@@ -45,9 +46,12 @@ class EmpiricalMap:
                           mass1=mass1, mass2=mass2)
                 dvr.do_calculation()
                 all_dvrs.append(dvr)
+                success.append(True)
             except:
                 print("Failed to load DVR for file %d" % file)
-        return all_dvrs
+                success.append(False)
+        success = np.array(success)
+        return all_dvrs, success
 
     def _obtain_eproj(self):
         eproj = []
