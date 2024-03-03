@@ -253,23 +253,23 @@ class Potential1D:
             self.rOH = np.genfromtxt(
                 rOH_file, dtype=float, usecols=(0), unpack=True)
         except:
-            raise ValueError("Error reading rOH file")
+            raise ValueError("Error reading rOH file %s" % rOH_file)
         try:
             self.pot_energy = np.genfromtxt(
                 pot_file, dtype=float, usecols=(0), unpack=True)
             self.pot_energy = self.pot_energy - self.pot_energy.min()
         except:
-            raise ValueError("Error reading potential file")
+            raise ValueError("Error reading potential file %s" % pot_file)
         try:
             self.mux, self.muy, self.muz = np.genfromtxt(
                 dip_file, dtype=float, usecols=(0, 1, 2), unpack=True)
         except:
-            raise ValueError("Error reading dipole file")
+            raise ValueError("Error reading dipole file %s" % dip_file)
         try:
             self.eOH = np.genfromtxt(
                 eOH_file, dtype=float, usecols=(0), unpack=True)
         except:
-            raise ValueError("Error reading eOH file")
+            raise ValueError("Error reading eOH file %s " % eOH_file)
         return
 
 
