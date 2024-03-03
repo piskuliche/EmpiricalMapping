@@ -17,7 +17,8 @@ class DVR:
         reactive scattering via the S-matrix Kohn method, Journal of Chemical Physics,
         96, pp. 1982-1991 (1992).
 
-
+    ToDo:
+        Set up for other grid types [if necessary]
 
 
     Attributes:
@@ -46,8 +47,11 @@ class DVR:
 
     """
 
-    def __init__(self, pot1d, emax=0.7, xmax=1.4, mass1=1.0, mass2=1.0, reduced_mass=None, num_grid_per_broglie=10):
-        """ Initialize the DVR class
+    def __init__(self, pot1d, emax=0.7, xmax=1.4, mass1=1.0, mass2=1.0, reduced_mass=None, num_grid_per_broglie=4):
+        """ Initialize the DVR class. 
+
+        Note - right now, the DVR class is only implemented for a 1D radial coordinate. At some point, it might be worthwhile
+        to implement the others. 
 
         Args:
             pot1d (Potential1D): The 1D potential object
