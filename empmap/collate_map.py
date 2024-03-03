@@ -18,7 +18,7 @@ class Collect:
     def obtain_dvr(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999):
         self.all_dvrs = []
         for file in self.file_list:
-            full_prefix = self.calc_dir + "%d/" % file + self.prefix
+            full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
             pot1d = Potential1D(full_prefix + "rOHs.dat", full_prefix + "energies.dat",
                                 full_prefix + "dipoles.dat", full_prefix + "eOHs.dat")
             pot1d.fit_potential_to_poly(3)
