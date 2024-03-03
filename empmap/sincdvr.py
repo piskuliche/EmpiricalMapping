@@ -181,8 +181,10 @@ class DVR:
         Returns:
             None
         """
+        # Set up the grid spacing
         self.delr = 2.0 * self.constants.PI / \
             (np.sqrt(2.0 * self.reduced_mass * self.emax))
+        # The number of grid points.
         nraw = int(np.ceil(self.xmax/self.delr))
         xmax_mod = self.delr*np.ceil(self.xmax/self.delr)
         self.xraw = np.linspace(self.delr, xmax_mod, num=nraw, dtype=float)
