@@ -32,7 +32,7 @@ class EmpiricalMap:
         print(np.average(self.w12))
         return
 
-    def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999):
+    def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, potpoly=5, dippoly=3):
         all_dvrs = []
         success = []
         for i, file in enumerate(self.file_list):
@@ -40,8 +40,8 @@ class EmpiricalMap:
                 full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
                 pot1d = Potential1D(full_prefix + "rOHs.dat", full_prefix + "energies.dat",
                                     full_prefix + "dipoles.dat", full_prefix + "eOHs.dat")
-                pot1d.fit_potential_to_poly(3)
-                pot1d.fit_dipole_to_poly(2)
+                pot1d.fit_potential_to_poly(potpoly)
+                pot1d.fit_dipole_to_poly(dippoly)
                 dvr = DVR(pot1d, emax=emax, xmax=xmax,
                           mass1=mass1, mass2=mass2)
                 dvr.do_calculation()
