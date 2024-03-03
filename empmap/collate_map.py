@@ -58,4 +58,4 @@ class EmpiricalMap:
         for file in self.file_list:
             full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
             eproj.append(np.loadtxt(full_prefix + "proj_field.dat"))
-        return eproj
+        return np.array(eproj)
