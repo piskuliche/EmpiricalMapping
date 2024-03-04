@@ -114,6 +114,7 @@ class EmpiricalMap:
                 dvr_read_successful.append(True)
             except:
                 print("Failed to load DVR for file %d" % file)
+                raise
                 dvr_read_successful.append(False)
 
         dvr_read_successful = np.array(dvr_read_successful)
