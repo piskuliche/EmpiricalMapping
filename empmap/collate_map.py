@@ -46,7 +46,7 @@ class EmpiricalMap:
         self.x12 = []
         self.psi = []
         self.mupsi1 = []
-        self.xpsi = []
+        self.xpsi1 = []
         self.Eproj = []
         return
 
@@ -74,7 +74,7 @@ class EmpiricalMap:
             self.w12.append(dvr.w12)
             self.psi.append(dvr.psi)
             self.mupsi1.append(dvr.mupsi1)
-            self.xpsi.append(dvr.xpsi)
+            self.xpsi1.append(dvr.xpsi1)
             self.x01.append(dvr.x01)
             self.x12.append(dvr.x12)
 
