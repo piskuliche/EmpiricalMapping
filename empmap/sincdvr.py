@@ -71,6 +71,8 @@ class DVR:
                 mass1, mass2)*self.constants.aupergmol
         else:
             self.reduced_mass = reduced_mass * self.constants.aupergmol
+
+        self.num_grid_per_broglie = num_grid_per_broglie
         self.emax = emax/self.constants.evperau
         self.xmax = xmax/self.constants.angperau
         self.num_grid_per_broglie = self.num_grid_per_broglie
