@@ -78,7 +78,7 @@ class EmpiricalMap:
             self.x01.append(dvr.x01)
             self.x12.append(dvr.x12)
 
-    def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3):
+    def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3, max_fail=10):
         """ Code to contstruct and obtain eigenvalues and eigenvectors using the DVR approach.
 
         Args:
@@ -96,6 +96,7 @@ class EmpiricalMap:
         """
         all_dvrs = []
         dvr_read_successful = []
+        fail_count = 0
         for file in self.file_list:
             try:
                 full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
@@ -114,8 +115,10 @@ class EmpiricalMap:
                 dvr_read_successful.append(True)
             except:
                 print("Failed to load DVR for file %d" % file)
-                raise
                 dvr_read_successful.append(False)
+                fail_count += 1
+                if fail_count > max_fail:
+                    raise
 
         dvr_read_successful = np.array(dvr_read_successful)
         return all_dvrs, dvr_read_successful
