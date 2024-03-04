@@ -139,7 +139,7 @@ class DVR:
         self.x12 = np.dot(psi2, xpsi1)
 
         self.psi = [psi0, psi1, psi2]
-        self.muspi1 = mupsi1
+        self.mupsi1 = mupsi1
         self.xpsi1 = xpsi1
 
         return
