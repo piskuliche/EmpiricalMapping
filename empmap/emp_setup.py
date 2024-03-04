@@ -117,7 +117,7 @@ class MapSetup:
         finp = open(calc_subdir+file_prefix+"%s.gjf" % frame_number, "w")
         fxyz = open(calc_subdir+file_prefix+"%s.xyz" % frame_number, "w")
         finp.write("%"+"NProcShared=%d\n" % self.nproc)
-        finp.write("%"+"Mem=%dB\n" % self.mem)
+        finp.write("%"+"Mem=%dGB\n" % self.mem)
         finp.write("%chk=calc.chk\n")
         rOHs = np.zeros(self.ngrid)
         for n in range(self.ngrid):
