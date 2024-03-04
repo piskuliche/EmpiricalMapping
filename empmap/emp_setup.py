@@ -5,7 +5,7 @@ from empmap.constants import ConstantsManagement
 
 
 class MapSetup:
-    def __init__(self, nmols, selection, inner_cutoff, outer_cutoff, calc_dir='newmap/', scan_dr=0.04, ngrid=14, rmin=0.72):
+    def __init__(self, nmols, selection, inner_cutoff, outer_cutoff, calc_dir='newmap/', scan_dr=0.04, ngrid=14, rmin=0.72, nproc=4, mem=20):
         """
         Initialize the MapSetup class
 
@@ -30,6 +30,8 @@ class MapSetup:
         print("MapSetup Initializing...")
         print("WARNINGS: ")
         print("1) This code works on water, only. ")
+        self.nproc = nproc
+        self.mem = mem
         self.nmols = nmols
         self.selection = selection
         self.inner_cutoff = inner_cutoff
@@ -114,8 +116,8 @@ class MapSetup:
 
         finp = open(calc_subdir+file_prefix+"%s.gjf" % frame_number, "w")
         fxyz = open(calc_subdir+file_prefix+"%s.xyz" % frame_number, "w")
-        finp.write("%NProcShared=28\n")
-        finp.write("%Mem=100GB\n")
+        finp.write("%NProcShared=%d\n" % self.nproc)
+        finp.write("%Mem=%dB\n" % self.mem)
         finp.write("%chk=calc.chk\n")
         rOHs = np.zeros(self.ngrid)
         for n in range(self.ngrid):
