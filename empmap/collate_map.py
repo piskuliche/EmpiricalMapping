@@ -79,7 +79,7 @@ class EmpiricalMap:
         fig = plt.figure()
         es = np.linspace(self.Eproj.min(), self.Eproj.max(), 100)
         plt.scatter(self.Eproj, values)
-        plt.plot(es, poly(*popt))
+        plt.plot(es, poly(es, *popt))
         plt.xlabel("E")
         plt.ylabel("%s" % attribute)
         plt.show()
