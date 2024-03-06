@@ -65,7 +65,7 @@ class EmpiricalMap:
         values_to_fit = getattr(self, attribute)
         popt, pcov = curve_fit(poly, self.Eproj, values_to_fit)
         self._print_fit(popt, attribute)
-        self._display_fit(poly, values_to_fit, attribute)
+        self._display_fit(poly, popt, values_to_fit, attribute)
 
     def _print_fit(self, popt, attribute):
         if len(popt) == 2:
@@ -75,9 +75,9 @@ class EmpiricalMap:
                   popt[0], popt[1], popt[2]))
         return
 
-    def _display_fit(self, poly, values, attribute):
+    def _display_fit(self, poly, popt, values, attribute):
         fig = plt.figure()
-        es = np.linspace(self.Eproj.min, self.Eproj.max, 100)
+        es = np.linspace(self.Eproj.min(), self.Eproj.max(), 100)
         plt.scatter(self.Eproj, values, 'ro')
         plt.plot(es, poly(*popt))
         plt.xlabel("E")
