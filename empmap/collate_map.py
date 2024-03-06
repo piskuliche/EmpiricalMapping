@@ -68,9 +68,9 @@ class EmpiricalMap:
 
     def _print_fit(self, popt, attribute):
         if len(popt) == 2:
-            print("%s = %10.4f + %10.4f*E" (attribute, popt[0], popt[1]))
+            print("%s = %10.4f + %10.4f*E" % (attribute, popt[0], popt[1]))
         elif len(popt) == 3:
-            print("%s = %10.4f + %10.4f*E + %10.4f*E^2" (attribute,
+            print("%s = %10.4f + %10.4f*E + %10.4f*E^2" % (attribute,
                   popt[0], popt[1], popt[2]))
         return
 
