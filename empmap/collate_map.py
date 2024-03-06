@@ -78,8 +78,7 @@ class EmpiricalMap:
     def _display_fit(self, poly, popt, values, attribute):
         fig = plt.figure()
         es = np.linspace(self.Eproj.min(), self.Eproj.max(), 100)
-        print(values)
-        plt.scatter(self.Eproj, values, 'ro')
+        plt.scatter(self.Eproj, values)
         plt.plot(es, poly(*popt))
         plt.xlabel("E")
         plt.ylabel("%s" % attribute)
