@@ -1,6 +1,8 @@
 from empmap.potential import Potential1D
 from empmap.sincdvr import DVR
 from empmap.constants import ConstantsManagement
+from empmap.poly_fit import mu_fit_selector
+from scipy.optimize import curve_fit
 import numpy as np
 
 
@@ -50,8 +52,36 @@ class EmpiricalMap:
         self.Eproj = []
         return
 
-    def create_map_by_fitting(self):
+    def create_map_by_fitting(self, order):
         raise NotImplemented("This function hasn't been implemented yet.")
+
+    def fit_attribute_of_map(self, attribute, order):
+        poly = mu_fit_selector(order)
+
+        if getattr(self, attribute) is None:
+            raise ValueError(
+                "The attribute %s is not present in the class" % attribute)
+        values_to_fit = getattr(self, attribute)
+        popt, pcov = curve_fit(poly, self.Eproj, values_to_fit)
+        self._print_fit(popt, attribute)
+        self._display_fit(poly, values_to_fit, attribute)
+
+    def _print_fit(self, popt, attribute):
+        if len(popt) == 2:
+            print("%s = %10.4f + %10.4f*E" (attribute, popt[0], popt[1]))
+        elif len(popt) == 3:
+            print("%s = %10.4f + %10.4f*E + %10.4f*E^2" (attribute,
+                  popt[0], popt[1], popt[2]))
+        return
+
+    def _display_fit(self, poly, values, attribute):
+        fig = plt.figure()
+        es = np.linspace(self.Eproj.min, self.Eproj.max, 100)
+        plt.scatter(self.Eproj, values, 'ro')
+        plt.plot(es, poly(*popt))
+        plt.xlabel("E")
+        plt.ylabel("%s" % attribute)
+        plt.show()
 
     def build_base_data(self, **kwargs):
         """ Build data using the DVR approach. 
