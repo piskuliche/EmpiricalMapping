@@ -3,6 +3,7 @@ from empmap.sincdvr import DVR
 from empmap.constants import ConstantsManagement
 from empmap.poly_fit import mu_fit_selector
 from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
 import numpy as np
 
 
