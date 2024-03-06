@@ -56,7 +56,7 @@ class MapSetup:
         print("Outer cutoff: %10.5f" % self.outer_cutoff)
         return
 
-    def load_universe(self, topology=None, trajectory=None):
+    def load_universe(self, *args, **kwargs):
         """
         Load the universe using the topology and trajectory files
 
@@ -68,18 +68,13 @@ class MapSetup:
             None
 
         """
-        if trajectory is None:
-            raise ValueError("Trajectory file not found")
-        if topology is None:
-            try:
-                self.universe = mda.Universe(trajectory)
-            except:
-                raise
-        else:
-            try:
-                self.universe = mda.Universe(topology, trajectory)
-            except:
-                raise
+        if len(args) == 0:
+            raise ValueError("Please provide something to build the universe.")
+
+        try:
+            self.universe = mda.Universe(*args, **kwargs)
+        except:
+            raise ValueError("Could not load the universe.")
         return
 
     def grab_clusters_from_frames(self, frames):
