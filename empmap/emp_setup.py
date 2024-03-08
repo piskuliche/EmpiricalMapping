@@ -27,7 +27,8 @@ class MapSetup:
             2) Add Selections for Bond to be scanned
             3) Refactor _field_on_atom_from_cluster to use MDAnalysis charges.
             4) Refactor calc_eOH to use explicit "safer" selection
-            5) 
+            5) Allow for the user to specify the level of theory for Gaussian
+            6) Add other QM programs that you can call - ase?
 
         """
         print("MapSetup Initializing...")
