@@ -1,11 +1,13 @@
 import numpy as np
 import MDAnalysis as mda
 import os
+import warnings
 from empmap.constants import ConstantsManagement
 
 
 class MapSetup:
-    def __init__(self, calc_dir='newmap/', selection="type O", bond_atoms=[0, 1], inner_cutoff=4.0, outer_cutoff=8.0,  scan_dr=0.04, ngrid=14, rmin=0.72, nproc=4, mem=20):
+    def __init__(self, calc_dir='newmap/', selection="type O", bond_atoms=[0, 1], bond_masses=[1.008, 17.007],
+                 inner_cutoff=4.0, outer_cutoff=8.0,  scan_dr=0.04, ngrid=14, rmin=0.72, nproc=4, mem=20):
         """
         Initialize the MapSetup class
 
@@ -44,10 +46,9 @@ class MapSetup:
         self.scan_dr = scan_dr
         self.ngrid = ngrid
         self.rmin = rmin
-        self.masses = {"O": 15.999, "H": 1.008, "D": 2.014}
-        self.charges = {"O": -0.834, "H": 0.417, "D": 0.417}
-        self.total_mass = self.masses["O"] + \
-            self.masses["H"] + self.masses["D"]
+        # Set the masses
+        self.bond_masses = bond_masses
+        self.total_mass = self.bond_masses[0]+self.bond_masses[1]
         self.constants = ConstantsManagement()
         if not os.path.exists(self.calc_dir):
             os.makedirs(self.calc_dir)
@@ -78,6 +79,39 @@ class MapSetup:
             self.universe = mda.Universe(*args, **kwargs)
         except:
             raise ValueError("Could not load the universe.")
+
+        self._test_universe()
+
+        return
+
+    def set_charges_from_list(self, charges):
+        """
+        Set the charges
+
+        Args:
+            charges (list): The charges
+
+        Returns:
+            None
+        """
+        self.universe.add_TopologyAttr("charges")
+        self.universe.atoms.charges = charges
+        return
+
+    def set_charges_by_type(self, charge_dict):
+        """
+        Set the charges by type
+
+        Args:
+            charges (dict): The charges
+
+        Returns:
+            None
+        """
+        charges = []
+        for type in self.universe.atoms.types:
+            charges.append(charge_dict[type])
+        self.set_charges_from_list(charges)
         return
 
     def grab_clusters_from_frames(self, frames):
@@ -90,6 +124,9 @@ class MapSetup:
             None
 
         """
+        status = self._test_universe()
+        if not status:
+            raise ValueError("Universe is not set up properly.")
         for ts in self.universe.trajectory[frames]:
             box = ts.dimensions[:3]
             res, inner, outer = self._grab_cluster(box)
@@ -132,7 +169,9 @@ class MapSetup:
         fxyz.close()
 
         # Calculate the Static Parameters
-        eOH = self._calc_bond_vector(resid)
+        eOH = self._calc_bond_vector(
+            resid[self.bond_atoms[0]].position,
+            resid[self.bond_atoms[1]].position)
         field = self._field_on_atom_from_cluster(resid, inner, outer)
         proj_field = self._project_field(field, eOH)
 
@@ -152,10 +191,6 @@ class MapSetup:
 
     def _write_gridpoint(self, f, n, resid, inner, outer):
         rOH, rtmp1, rtmp2, rtmpO = self._calc_rOH_distance(resid, n)
-        rinner = inner.positions
-        intypes = inner.atoms.types
-        router = outer.positions
-        outtypes = outer.atoms.types
         atypes, coords = [], []
         f.write("#n B3LYP/6-311G(d,p) empiricaldispersion=gd3 Charge\n")
         f.write("\n")
@@ -172,18 +207,18 @@ class MapSetup:
         atypes.append("H")
         atypes.append("H")
 
-        for i, pos in enumerate(rinner):
+        for i, pos in enumerate(inner.positions):
             f.write("%s %10.5f %10.5f %10.5f\n" %
-                    (intypes[i], pos[0], pos[1], pos[2]))
+                    (inner.atoms.types[i], pos[0], pos[1], pos[2]))
             coords.append(pos)
-            atypes.append(intypes[i])
+            atypes.append(inner.atoms.types[i])
         f.write("\n")
 
-        for i, pos in enumerate(router):
+        for i, pos in enumerate(outer.positions):
             f.write("%10.5f %10.5f %10.5f %10.5f\n" %
-                    (pos[0], pos[1], pos[2], self.charges[outtypes[i]]))
+                    (pos[0], pos[1], pos[2], outer.atoms.charges[i]))
             coords.append(pos)
-            atypes.append(outtypes[i])
+            atypes.append(outer.atoms.types[i])
         f.write("\n")
         return rOH, atypes, coords
 
@@ -197,14 +232,12 @@ class MapSetup:
     def _project_field(self, field, eOH):
         return np.array(np.dot(field, eOH)*self.constants.angperau**2.)
 
-    def _calc_rOH_distance(self, resid, n, mass1, mass2):
+    def _calc_rOH_distance(self, resid, n):
         """ Calculate the rOH distance
 
         Args:
             resid (MDAnalysis.AtomGroup): The residue
             n (int): The gridpoint
-            mass1 (float): The mass of atom 1
-            mass2 (float): The mass of atom 2
 
         Returns:
             rOH (float): The distance
@@ -219,19 +252,21 @@ class MapSetup:
         # Grab the Positions
         ratom1 = resid[self.bond_atoms[0]].position
         ratom2 = resid[self.bond_atoms[1]].position
+        print(resid[self.bond_atoms[0]])
+        print(resid[self.bond_atoms[1]])
 
         # Calculate the Bond Vector
-        e_vector = self._calc_bond_vector(resid, ratom1, ratom2)
+        e_vector = self._calc_bond_vector(ratom1, ratom2)
 
         rtmp1 = np.zeros(3)
         rtmp2 = np.zeros(3)
         rtmpO = np.zeros(3)
 
-        rtmp1 = ratom1 + (mass1) * \
+        rtmp1 = ratom1 + (self.bond_masses[1]) * \
             e_vector * (self.rmin+self.scan_dr*n)/self.total_mass
-        rtmp2 = ratom2 - (mass2)*e_vector * \
+        rtmp2 = ratom2 - (self.bond_masses[0])*e_vector * \
             (self.rmin+self.scan_dr*n)/self.total_mass
-        rtmpO = ratom1 - (mass2)*e_vector * \
+        rtmpO = ratom1 - (self.bond_masses[0])*e_vector * \
             (self.rmin+self.scan_dr*n)/self.total_mass
 
         rOH = np.sqrt(np.sum(np.subtract(rtmp1, rtmpO)**2.))
@@ -253,6 +288,12 @@ class MapSetup:
         cluster = inner.concatenate(outer)
 
         field = np.zeros(3)
+
+        for atom in cluster:
+            dr = resid[self.bond_atoms[1]].position - atom.position
+            dist = np.sqrt(np.sum(dr**2.))
+            field += atom.charge*dr/dist**3.
+        """
         resO = resid.select_atoms("type O").positions[0]
         resH = resid.select_atoms("type H").positions[0]
 
@@ -268,6 +309,7 @@ class MapSetup:
             drHH = resO - pos
             rHH = np.sqrt(np.sum(drHH**2.))
             field += self.charges["H"]*drHH/rHH**3
+        """
 
         return field
 
@@ -309,8 +351,6 @@ class MapSetup:
         outer = all_outer.subtract(inner)
         inner = inner.subtract(resid)
 
-        all_group = resid.concatenate(inner).concatenate(outer)
-
         # Translate the Clusters
         # This little section of code ensures that the droplets are centered in the box (which goes from 0 to Lbox)
         # Importantly, it also wraps the atoms around the droplet, so you don't end up with the droplet split
@@ -342,6 +382,32 @@ class MapSetup:
             newpos.append(dr+central_pos)
         towrap.positions = np.array(newpos)
         return towrap
+
+    def _test_universe(self):
+        """
+        Test the universe
+
+        Returns:
+            None
+        """
+        status_of_universe = True
+        try:
+            self.universe.atoms.types
+        except:
+            warnings.warn("No types found in the universe.", UserWarning)
+            status_of_universe = False
+        try:
+            self.universe.atoms.charges
+        except:
+            warnings.warn("No charges found in the universe.", UserWarning)
+            status_of_universe = False
+        try:
+            self.universe.atoms.masses
+        except:
+            warnings.warn("No masses found in the universe.", UserWarning)
+            status_of_universe = False
+
+        return status_of_universe
 
 
 if __name__ == "__main__":
