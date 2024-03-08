@@ -176,8 +176,8 @@ class MapSetup:
 
         # Calculate the Static Parameters
         eOH = self._calc_bond_vector(
-            resid[self.bond_atoms[0]].position,
-            resid[self.bond_atoms[1]].position)
+            resid[self.bond_atoms[1]].position,
+            resid[self.bond_atoms[0]].position)
         field = self._field_on_atom_from_cluster(resid, inner, outer)
         proj_field = self._project_field(field, eOH)
 
