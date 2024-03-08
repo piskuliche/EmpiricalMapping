@@ -5,7 +5,7 @@ from empmap.constants import ConstantsManagement
 
 
 class MapSetup:
-    def __init__(self, calc_dir='newmap/', selection="type O", center_selection="type H", inner_cutoff=4.0, outer_cutoff=8.0,  scan_dr=0.04, ngrid=14, rmin=0.72, nproc=4, mem=20):
+    def __init__(self, calc_dir='newmap/', selection="type O", bond_atoms=[0, 1], inner_cutoff=4.0, outer_cutoff=8.0,  scan_dr=0.04, ngrid=14, rmin=0.72, nproc=4, mem=20):
         """
         Initialize the MapSetup class
 
@@ -37,7 +37,7 @@ class MapSetup:
         self.nproc = nproc
         self.mem = mem
         self.selection = selection
-        self.center_selection = center_selection
+        self.bond_atoms = bond_atoms
         self.inner_cutoff = inner_cutoff
         self.outer_cutoff = outer_cutoff
         self.calc_dir = calc_dir
@@ -55,7 +55,6 @@ class MapSetup:
 
     def description(self):
         print("Selection: %s" % self.selection)
-        print("Center Selection: %s" % self.center_selection)
         print("Inner cutoff: %10.5f" % self.inner_cutoff)
         print("Outer cutoff: %10.5f" % self.outer_cutoff)
         return
@@ -133,7 +132,7 @@ class MapSetup:
         fxyz.close()
 
         # Calculate the Static Parameters
-        eOH = self._calc_eOH(resid)
+        eOH = self._calc_bond_vector(resid)
         field = self._field_on_atom_from_cluster(resid, inner, outer)
         proj_field = self._project_field(field, eOH)
 
@@ -172,12 +171,14 @@ class MapSetup:
         atypes.append("O")
         atypes.append("H")
         atypes.append("H")
+
         for i, pos in enumerate(rinner):
             f.write("%s %10.5f %10.5f %10.5f\n" %
                     (intypes[i], pos[0], pos[1], pos[2]))
             coords.append(pos)
             atypes.append(intypes[i])
         f.write("\n")
+
         for i, pos in enumerate(router):
             f.write("%10.5f %10.5f %10.5f %10.5f\n" %
                     (pos[0], pos[1], pos[2], self.charges[outtypes[i]]))
@@ -186,31 +187,53 @@ class MapSetup:
         f.write("\n")
         return rOH, atypes, coords
 
-    def _calc_eOH(self, resid):
-        eOH = np.zeros(3)
-        rO = resid.select_atoms("type O").positions
-        rH = resid.select_atoms("type H").positions
-        eOH = np.subtract(rH[0], rO[0])
-        norm = np.sqrt(np.dot(eOH, eOH))
-        eOH = eOH / norm
-        return eOH
+    def _calc_bond_vector(self, r1, r2):
+        e_vector = np.zeros(3)
+        e_vector = np.subtract(r1, r2)
+        norm = np.sqrt(np.dot(e_vector, e_vector))
+        e_vector = e_vector / norm
+        return e_vector
 
     def _project_field(self, field, eOH):
         return np.array(np.dot(field, eOH)*self.constants.angperau**2.)
 
-    def _calc_rOH_distance(self, resid, n):
-        eOH = self._calc_eOH(resid)
-        rO = resid.select_atoms("type O").positions[0]
-        rH2 = resid.select_atoms("type H").positions[1]
+    def _calc_rOH_distance(self, resid, n, mass1, mass2):
+        """ Calculate the rOH distance
+
+        Args:
+            resid (MDAnalysis.AtomGroup): The residue
+            n (int): The gridpoint
+            mass1 (float): The mass of atom 1
+            mass2 (float): The mass of atom 2
+
+        Returns:
+            rOH (float): The distance
+            rtmp1 (np.ndarray): The position of atom 1
+            rtmp2 (np.ndarray): The position of atom 2
+            rtmpO (np.ndarray): The position of the oxygen
+
+        Todo:
+            Need to make this more general
+        """
+
+        # Grab the Positions
+        ratom1 = resid[self.bond_atoms[0]].position
+        ratom2 = resid[self.bond_atoms[1]].position
+
+        # Calculate the Bond Vector
+        e_vector = self._calc_bond_vector(resid, ratom1, ratom2)
+
         rtmp1 = np.zeros(3)
         rtmp2 = np.zeros(3)
         rtmpO = np.zeros(3)
-        rtmp1 = rO + (self.masses["O"] + self.masses["D"]) * \
-            eOH * (self.rmin+self.scan_dr*n)/self.total_mass
-        rtmp2 = rH2 - (self.masses["H"])*eOH * \
+
+        rtmp1 = ratom1 + (mass1) * \
+            e_vector * (self.rmin+self.scan_dr*n)/self.total_mass
+        rtmp2 = ratom2 - (mass2)*e_vector * \
             (self.rmin+self.scan_dr*n)/self.total_mass
-        rtmpO = rO - (self.masses["H"])*eOH * \
+        rtmpO = ratom1 - (mass2)*e_vector * \
             (self.rmin+self.scan_dr*n)/self.total_mass
+
         rOH = np.sqrt(np.sum(np.subtract(rtmp1, rtmpO)**2.))
         return rOH, rtmp1, rtmp2, rtmpO
 
