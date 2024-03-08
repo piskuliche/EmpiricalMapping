@@ -5,13 +5,13 @@ from empmap.constants import ConstantsManagement
 
 
 class MapSetup:
-    def __init__(self, nmols, selection, inner_cutoff, outer_cutoff, calc_dir='newmap/', scan_dr=0.04, ngrid=14, rmin=0.72, nproc=4, mem=20):
+    def __init__(self, calc_dir='newmap/', selection="type O", center_selection="type H", inner_cutoff=4.0, outer_cutoff=8.0,  scan_dr=0.04, ngrid=14, rmin=0.72, nproc=4, mem=20):
         """
         Initialize the MapSetup class
 
         Args:
-            nmols (int): The number of molecules
-            selection (str): The selection string
+            selection (str): The selection string [default: type O]
+            center_selection (str): The center selection string [default: type H]
             inner_cutoff (float): The inner cutoff
             outer_cutoff (float): The outer cutoff
             calc_dir (str): The calculation directory
@@ -25,6 +25,9 @@ class MapSetup:
         To Do:
             1) Make Masses + Total Mass Read In + charges
             2) Add Selections for Bond to be scanned
+            3) Refactor _field_on_atom_from_cluster to use MDAnalysis charges.
+            4) Refactor calc_eOH to use explicit "safer" selection
+            5) 
 
         """
         print("MapSetup Initializing...")
@@ -32,8 +35,8 @@ class MapSetup:
         print("1) This code works on water, only. ")
         self.nproc = nproc
         self.mem = mem
-        self.nmols = nmols
         self.selection = selection
+        self.center_selection = center_selection
         self.inner_cutoff = inner_cutoff
         self.outer_cutoff = outer_cutoff
         self.calc_dir = calc_dir
@@ -50,8 +53,8 @@ class MapSetup:
         return
 
     def description(self):
-        print("Number of molecules: %d" % self.nmols)
         print("Selection: %s" % self.selection)
+        print("Center Selection: %s" % self.center_selection)
         print("Inner cutoff: %10.5f" % self.inner_cutoff)
         print("Outer cutoff: %10.5f" % self.outer_cutoff)
         return
@@ -253,6 +256,14 @@ class MapSetup:
             inner (MDAnalysis.AtomGroup): The inner cluster
             outer (MDAnalysis.AtomGroup): The outer cluster
 
+
+        TODO:
+            1) Make resids be of a certain type - otherwise, this won't work for mixed systems
+            2) Need to modify the selections so that it picks the right central atom
+                Ideally, this needs to happen in the selection string so that it can happen
+                in one step. 
+            3) 
+
         """
         # Pull a Random Resid
         if resid_override is not None:
@@ -262,7 +273,7 @@ class MapSetup:
 
         # Select the Inner and Outer Clusters
         resid_sel = "resid %d" % random_resid
-        inner_sel = "same residue as (%s and around %10.5f resid %d)" % (
+        inner_sel = "same residue as (%s and around %10.5f (resid %d))" % (
             self.selection, self.inner_cutoff, random_resid)
         outer_sel = "same residue as (%s and around %10.5f resid %d)" % (
             self.selection, self.outer_cutoff, random_resid)
@@ -275,7 +286,6 @@ class MapSetup:
         inner = inner.subtract(resid)
 
         all_group = resid.concatenate(inner).concatenate(outer)
-        com = all_group.center_of_mass()
 
         # Translate the Clusters
         # This little section of code ensures that the droplets are centered in the box (which goes from 0 to Lbox)
