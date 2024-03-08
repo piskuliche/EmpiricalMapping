@@ -133,13 +133,18 @@ class MapSetup:
             self.write_gaussian(res, inner, outer, ts.frame, "scan_")
         return
 
-    def write_gaussian(self, resid, inner, outer, frame_number, file_prefix):
+    def write_gaussian(self, resid, inner, outer, frame_number, file_prefix, functional="b3lyp", basis="6-311G(d,p)"):
         """
         Write the cluster to a file
 
         Args:
-            cluster (MDAnalysis.AtomGroup): The cluster to write
-            file_prefix (str): The filename to write to
+            resid (MDAnalysis.AtomGroup): The residue
+            inner (MDAnalysis.AtomGroup): The inner cluster
+            outer (MDAnalysis.AtomGroup): The outer cluster
+            frame_number (int): The frame number
+            file_prefix (str): The file prefix
+            functional (str): The functional [default: b3lyp]
+            basis (str): The basis set [default: 6-311G(d,p)]
 
         Returns:
             None
@@ -189,10 +194,11 @@ class MapSetup:
                     (atype, coords[i][0], coords[i][1], coords[i][2]))
         return
 
-    def _write_gridpoint(self, f, n, resid, inner, outer):
+    def _write_gridpoint(self, f, n, resid, inner, outer, functional="b3lyp", basis="6-311G(d,p)"):
         rOH, rtmp1, rtmp2, rtmpO = self._calc_rOH_distance(resid, n)
         atypes, coords = [], []
-        f.write("#n B3LYP/6-311G(d,p) empiricaldispersion=gd3 Charge\n")
+        f.write("#n %s/%s empiricaldispersion=gd3 Charge\n" %
+                (functional, basis))
         f.write("\n")
         f.write("Water Scan\n")
         f.write("\n")
@@ -250,13 +256,13 @@ class MapSetup:
         """
 
         # Grab the Positions
+
         ratom1 = resid[self.bond_atoms[0]].position
         ratom2 = resid[self.bond_atoms[1]].position
-        print(resid[self.bond_atoms[0]])
-        print(resid[self.bond_atoms[1]])
+        rother = resid[2].position
 
-        # Calculate the Bond Vector
-        e_vector = self._calc_bond_vector(ratom1, ratom2)
+        # Calculate the Bond Vector (note - H - O, not O - H)
+        e_vector = self._calc_bond_vector(ratom2, ratom1)
 
         rtmp1 = np.zeros(3)
         rtmp2 = np.zeros(3)
@@ -264,7 +270,7 @@ class MapSetup:
 
         rtmp1 = ratom1 + (self.bond_masses[1]) * \
             e_vector * (self.rmin+self.scan_dr*n)/self.total_mass
-        rtmp2 = ratom2 - (self.bond_masses[0])*e_vector * \
+        rtmp2 = rother - (self.bond_masses[0])*e_vector * \
             (self.rmin+self.scan_dr*n)/self.total_mass
         rtmpO = ratom1 - (self.bond_masses[0])*e_vector * \
             (self.rmin+self.scan_dr*n)/self.total_mass
