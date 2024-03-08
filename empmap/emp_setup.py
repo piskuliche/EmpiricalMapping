@@ -6,7 +6,7 @@ from empmap.constants import ConstantsManagement
 
 
 class MapSetup:
-    def __init__(self, calc_dir='newmap/', selection="type O", bond_atoms=[0, 1], bond_masses=[1.008, 17.007],
+    def __init__(self, calc_dir='newmap/', selection="type O", bond_atoms=[0, 1], central_atom=1, bond_masses=[1.008, 17.007],
                  inner_cutoff=4.0, outer_cutoff=8.0,  scan_dr=0.04, ngrid=14, rmin=0.72, nproc=4, mem=20):
         """
         Initialize the MapSetup class
@@ -40,6 +40,7 @@ class MapSetup:
         self.mem = mem
         self.selection = selection
         self.bond_atoms = bond_atoms
+        self.central_atom = central_atom
         self.inner_cutoff = inner_cutoff
         self.outer_cutoff = outer_cutoff
         self.calc_dir = calc_dir
@@ -343,15 +344,17 @@ class MapSetup:
         else:
             random_resid = np.random.choice(self.universe.residues.resids)
 
-        # Select the Inner and Outer Clusters
         resid_sel = "resid %d" % random_resid
-        inner_sel = "same residue as (%s and around %10.5f (resid %d))" % (
-            self.selection, self.inner_cutoff, random_resid)
-        outer_sel = "same residue as (%s and around %10.5f resid %d)" % (
-            self.selection, self.outer_cutoff, random_resid)
+        resid = self.universe.select_atoms("%s" % resid_sel)
+        resid_central_index = resid[self.central_atom].index
+        # Select the Inner and Outer Clusters
+        inner_sel = "same residue as (%s and around %10.5f index %d)" % (
+            self.selection, self.inner_cutoff, resid_central_index)
+        outer_sel = "same residue as (%s and around %10.5f index %d)" % (
+            self.selection, self.outer_cutoff, resid_central_index)
 
         # Do the Selections
-        resid = self.universe.select_atoms("%s" % resid_sel)
+
         inner = self.universe.select_atoms("%s" % inner_sel)
         all_outer = self.universe.select_atoms("%s" % outer_sel)
         outer = all_outer.subtract(inner)
