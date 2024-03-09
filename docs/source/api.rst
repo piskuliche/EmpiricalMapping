@@ -3,5 +3,4 @@ API
 
 .. autosummary::
    :recursive:
-
-   empmap
+   :toctree: _autosummary
