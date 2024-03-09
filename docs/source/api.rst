@@ -3,4 +3,4 @@ API
 
 .. autosummary::
    :toctree: generated
-   empmap
+   empmap.collate_map
