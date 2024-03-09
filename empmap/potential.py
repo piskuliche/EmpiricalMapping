@@ -1,11 +1,36 @@
+""" This module contains the Morse and Potential1D classes
+
+Notes:
+------
+The Morse class is used to fit the Morse potential to the potential energy data. 
+The Potential1D class is used to read the data from the files and then fit the potential energy and dipole moment to a polynomial.
+
+Examples:
+---------
+>>> from empmap.potential import Morse
+>>> morse = Morse()
+>>> morse.fit_parameters(r, E, mu, p0=[100, 10, 1.0])
+
+>>> from empmap.potential import Potential1D
+>>> pot = Potential1D("rOH_file", "pot_file", "dip_file", "eOH_file")
+>>> pot.fit_potential_to_poly(3)
+>>> pot.fit_dipole_to_poly(2)
+
+"""
+__all__ = ["Morse", "Potential1D"]
+
+
 import numpy as np
+from scipy.optimize import curve_fit
+
 from empmap.constants import ConstantsManagement
 from empmap.poly_fit import poly_fit_selector, mu_fit_selector
-from scipy.optimize import curve_fit
 
 
 class Morse:
     def __init__(self):
+        """ Initialize the Morse potential class
+        """
         self.constants = ConstantsManagement()
         self.de = None
         self.alpha = None
@@ -13,21 +38,39 @@ class Morse:
         pass
 
     def __repr__(self):
+        """ Return the Morse potential representation"""
         return "Morse(de={}, alpha={}, re={})".format(self.de, self.alpha, self.re)
 
     def description(self):
+        """ Print the Morse potential parameters """
         print("Morse potential with \nde={}, \nalpha={}, \nre={}".format(
             self.de, self.alpha, self.re))
 
     def fit_parameters(self, r, E, mu, p0=[100, 10, 1.0]):
         """ Fit the Morse potential parameters
 
-        Args:
-            r (np.array): The rOH values [Distance Unit]
-            E (np.array): The potential energy values [Energy Unit]
+        Notes:
+        ------
+        This function is used to fit the Morse potential parameters to the potential energy data.
+
+        Parameters:
+        -----------
+        r : array_like
+            The bond distance values [Distance Unit]
+        E : array_like
+            The potential energy values [Energy Unit]
+        mu : float
+            The reduced mass of the oscillator [Mass Unit]
+        p0 : array_like
+            The initial guess for the Morse potential parameters (de, a, re)
 
         Returns:
-            tuple: The Morse potential parameters (de, a, re)
+        --------
+        popt : array_like
+            The optimized parameters
+        pcov : array_like
+            The covariance matrix
+
         """
         E = E - E.min()
         popt, pcov = curve_fit(self.energy, r, E, p0=p0)
@@ -42,22 +85,83 @@ class Morse:
     def energy(self, r, de, a, re):
         """ Calculate the Morse potential
 
-        Args:
-            de (float): The dissociation energy [Energy Unit]
-            a (float): The Morse potential parameter [1/Distance Unit]
-            re (float): The equilibrium bond length [Distance Unit]
+        Notes:
+        ------
+        This function is used to calculate the Morse potential.
+
+        The Morse potential is given by:
+        V(r) = de*(1 - exp(-a*(r - re)))^2
+
+        Parameters:
+        ----------
+            de : float
+                The dissociation energy [Energy Unit]
+            a : float
+                The Morse potential parameter [1/Distance Unit]
+            re : float
+                The equilibrium bond length [Distance Unit]
 
         Returns:
+        -------
             float: The Morse potential [Energy Unit]
+
         """
         return de * (1.0 - np.exp(-a * (r - re)))**2
 
     def morse_Bfactor(self, alpha, mu, de):
+        """ Calculate the Morse potential B factor
+
+        Notes:
+        ------
+        This function is used to calculate the Morse potential B factor.
+
+        The Morse potential B factor is given by:
+        B = sqrt(alpha^2*hbar^2/(2*mu*de))
+
+        Parameters:
+        ----------
+        alpha : float
+            The Morse potential parameter [1/Distance Unit]
+        mu : float
+            The reduced mass of the oscillator [Mass Unit]
+        de : float
+            The dissociation energy [Energy Unit]
+
+        Returns:
+        -------
+        float: The Morse potential B factor [Energy Unit]
+
+        """
+
         hbar = self.constants.hbar_evs
         return np.sqrt(alpha**2.*hbar**2./(2.*mu*de)/self.constants.evper_amuangpersqsec)
 
     @staticmethod
     def morse_eigenvalues(de, B, n):
+        """ Calculate the Morse potential eigenvalues
+
+        Notes:
+        ------
+        This function is used to calculate the Morse potential eigenvalues.
+
+        The Morse potential eigenvalues are given by:
+        E_n = de*(n+0.5)*(2-B*(n+0.5))
+
+        Parameters:
+        ----------
+        de : float
+            The dissociation energy [Energy Unit]
+        B : float
+            The Morse potential B factor [Energy Unit]
+        n : int
+            The quantum number
+
+        Returns:
+        -------
+        float: The Morse potential eigenvalues [Energy Unit]
+
+        """
+
         return de*B*(n+0.5)*(2-B*(n+0.5))
 
 
@@ -65,14 +169,25 @@ class Potential1D:
     def __init__(self, rOH_file, pot_file, dip_file, eOH_file):
         """ Initialize the Potential1D class
 
-        Args:
-            rOH_file (str): The file containing the rOH values
-            pot_file (str): The file containing the potential energy values
-            dip_file (str): The file containing the dipole values
-            reduced_mass (float): The reduced mass of the oscillator
+        Notes:
+        ------
+        This class is used to read the data from the files and then fit the potential energy and dipole moment to a polynomial.
+
+        Parameters:
+        -----------
+        rOH_file : str
+            The file containing the rOH values [Angstroms]
+        pot_file : str
+            The file containing the potential energy values [eV]
+        dip_file : str
+            The file containing the dipole values [D]
+        eOH_file : str
+            The file containing the eOH values [Unitless]
 
         Returns:
-            None
+        --------
+        None
+
         """
         self.rOH = None
         self.pot_energy = None
@@ -88,10 +203,18 @@ class Potential1D:
     def fit_potential_to_poly(self, order):
         """ Fit the potential to a polynomial
 
-        Args:
-            order (int): The order of the polynomial
+        Notes:
+        ------
+        This function is used to fit the potential energy to a polynomial.
+
+
+        Parameters:
+        -----------
+        order : int
+            The order of the polynomial
 
         Returns:
+        --------
             None
 
         """
@@ -111,11 +234,19 @@ class Potential1D:
     def fit_dipole_to_poly(self, order):
         """ Fit the dipole to a polynomial
 
-        Args:
-            order (int): The order of the polynomial
+        Notes:
+        ------
+        This function is used to fit the dipole moment to a polynomial.
+
+        Parameters:
+        -----------
+        order : int
+            The order of the polynomial
 
         Returns:
-            None
+        --------
+        None
+
 
         """
         mu_poly = mu_fit_selector(order)
@@ -156,11 +287,18 @@ class Potential1D:
     def fit_to_morse(self, reduced_mass):
         """ Fit the potential to a Morse potential
 
-        Args:
-            mu (float): The reduced mass of the oscillator (amu)
+        Notes:
+        ------
+        This function is used to fit the potential energy to a Morse potential.
+
+        Parameters:
+        -----------
+        reduced_mass : float
+            The reduced mass of the oscillator [Mass Unit]
 
         Returns:
-            None
+        --------
+        None
 
         """
         morse = Morse()
@@ -169,13 +307,15 @@ class Potential1D:
         morse.description()
 
     def _project_mu(self):
-        """ Project the dipole moment onto the bond axis
+        """ Project the dipole moment onto the eOH vector
 
-        Args:
-            None
+        Notes:
+        ------
+        This function is used to project the dipole moment onto the eOH vector.
 
         Returns:
-            None
+        --------
+        None
 
         """
         self.mu = np.zeros(self.ndata)
@@ -187,12 +327,19 @@ class Potential1D:
     def _deriv_of_polyfit(self, popt):
         """ Calculate the derivative of the fit
 
-        Args:
-            popt (np.array): The fit parameters
+        Notes:
+        ------
+        This function is used to calculate the derivative of the fit.
+
+        Parameters:
+        -----------
+        popt : array_like
+            The optimized parameters
 
         Returns:
-            np.array: The derivative of the fit parameters
-
+        --------
+        dmufit_popt : array_like
+            The derivative of the fit parameters
         """
         dmufit_popt = None
         deriv_order = len(popt)-1
@@ -203,6 +350,28 @@ class Potential1D:
         return dmufit_popt
 
     def _display_polyfit(self, order, poly, popt, verbose=False):
+        """ Display the polynomial fit
+
+        Notes:
+        ------
+        This function is used to display the polynomial fit.
+
+        Parameters:
+        -----------
+        order : int
+            The order of the polynomial
+        poly : function
+            The polynomial function
+        popt : array_like
+            The optimized parameters
+        verbose : bool
+
+        Returns:
+        --------
+        None
+
+        """
+
         vf = poly(self.rOH, *popt)
         print("# **************************************************")
         print('#  V0 = %13.8f' % popt[0]+' eV')
@@ -218,6 +387,30 @@ class Potential1D:
         print("# **************************************************")
 
     def _display_mu_polyfit(self, order, popt, dmu, dmu_num, verbose=False):
+        """ Display the dipole moment polynomial fit
+
+        Notes:
+        ------
+        This function is used to display the dipole moment polynomial fit.
+
+        Parameters:
+        -----------
+        order : int
+            The order of the polynomial
+        popt : array_like
+            The optimized parameters
+        dmu : float
+            The derivative of the fit
+        dmu_num : float
+            The numerical derivative of the fit
+        verbose : bool
+            Flag to print the verbose output
+
+        Returns:
+        --------
+        None
+
+        """
         print("# **************************************************")
         if (order == 1):
             print('#  mu0       = %13.8f' % popt[0]+' D')
@@ -234,19 +427,31 @@ class Potential1D:
     def _read_data(self, rOH_file, pot_file, dip_file, eOH_file):
         """ Read the data from the files
 
-        This reads four files, the rOH, potential energy, dipole, and eOH values.
+        Notes:
+        ------
+        This function is used to read the data from the files.
 
-        Then it does the following operations:
-        -> zeros the minimum of the potential energy
+        These files contain the rOH, potential energy, dipole, and eOH values.
 
-        Args:
-            rOH_file (str): The file containing the rOH values [Angstroms]
-            pot_file (str): The file containing the potential energy values [eV]
-            dip_file (str): The file containing the dipole values [D]
-            eOH_file (str): The file containing the eOH values [Unitless]
+        Parameters:
+        -----------
+        rOH_file : str
+            The file containing the rOH values [Angstroms]
+        pot_file : str
+            The file containing the potential energy values [eV]
+        dip_file : str
+            The file containing the dipole values [D]
+        eOH_file : str
+            The file containing the eOH values [Unitless]
 
         Returns:
+        --------
             None
+
+        Raises:
+        -------
+        ValueError:
+            If there is an error reading the files
 
         """
         try:
