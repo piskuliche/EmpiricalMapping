@@ -1,8 +1,8 @@
 API
 ===
 
-.. autosummary::
+.. autoclass::
    :toctree: _autosummary
-   :recursive:
+   :members:
 
    empmap
