@@ -2,5 +2,6 @@ API
 ===
 
 .. autosummary::
-   :toctree: generated
-   empmap.collate_map
+   :recursive:
+
+   sphinx.environment.BuildEnvironment
