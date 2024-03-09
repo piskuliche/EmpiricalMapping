@@ -1,7 +1,58 @@
-import numpy as np
-import MDAnalysis as mda
+""" This module contains the MapSetup class, which is used to set up the
+    calculations for the empirical map.
+
+Notes:
+-----
+The MapSetup class is used to set up the calculations for the empirical map.
+It is initialized with the selection, bond atoms, central atom, bond masses, inner
+cutoff, outer cutoff, calculation directory, scan dr, ngrid, and rmin.
+
+It then uses this information, along with a trajectory, to grab clusters from the
+frames and write Gaussian input files for the clusters.
+
+Examples:
+---------
+>>> from empmap.emp_setup import MapSetup
+>>> setup = MapSetup()
+>>> setup.load_universe("water.gro", "water.xtc")
+>>> setup.grab_clusters_from_frames([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+>>> setup.write_gaussian(resid, inner, outer, 0, "scan_")
+
+Warnings will be issued if the universe doesn't include needed information, such as
+charges, masses, or types during initialization. 
+
+These warnings will be raised as errors if clusters are tried to be grabbed from the universe
+before these are added to the universe.
+
+To add charges to the universe, use the set_charges_from_list or set_charges_by_type methods.
+
+Example:
+--------
+>>> from empmap.emp_setup import MapSetup
+>>> setup = MapSetup()
+>>> setup.load_universe("water.gro", "water.xtc")
+>>> charges = {"O": -0.834, "H": 0.417}
+>>> setup.set_charges_by_type(charges)
+
+To Do:
+-----
+1) Make Masses + Total Mass Read In + charges
+2) Add Selections for Bond to be scanned
+3) Refactor _field_on_atom_from_cluster to use MDAnalysis charges.
+4) Refactor calc_eOH to use explicit "safer" selection
+5) Allow for the user to specify the level of theory for Gaussian
+6) Add other QM programs that you can call - ase?
+7) Generalize rOH distance calcualtor to all bonds.
+
+"""
+__all__ = ["MapSetup"]
+
 import os
 import warnings
+
+import numpy as np
+import MDAnalysis as mda
+
 from empmap.constants import ConstantsManagement
 
 
@@ -11,26 +62,44 @@ class MapSetup:
         """
         Initialize the MapSetup class
 
-        Args:
-            selection (str): The selection string [default: type O]
-            center_selection (str): The center selection string [default: type H]
-            inner_cutoff (float): The inner cutoff
-            outer_cutoff (float): The outer cutoff
-            calc_dir (str): The calculation directory
-            scan_dr (float): The scan dr
-            ngrid (int): The number of grid points
-            rmin (float): The minimum distance
-
-        Returns:
-            None
-
-        To Do:
-            1) Make Masses + Total Mass Read In + charges
-            2) Add Selections for Bond to be scanned
-            3) Refactor _field_on_atom_from_cluster to use MDAnalysis charges.
-            4) Refactor calc_eOH to use explicit "safer" selection
-            5) Allow for the user to specify the level of theory for Gaussian
-            6) Add other QM programs that you can call - ase?
+        Parameters:
+        ----------
+        calc_dir : str
+            The directory for the calculations. (The default is 'newmap/' which
+            will create a new directory called 'newmap' in the current working directory.)
+        selection : str
+            The MDAnalysis selection string for the molecules around the
+            central resid. (The default is "type O" which selects all the oxygens within
+            the cutoff distance of the central atom.)
+        bond_atoms : list
+            The indices of the atoms in the bond. (The default is [0, 1] which
+            selects the first two atoms in the central residue. For water, this
+            would be the O-H bond.)
+        central_atom : int
+            The index of the central atom. (The default is 1 which selects the
+            second atom in the central residue. For water, this would be the first
+            hydrogen atom.)
+        bond_masses : list
+            The masses of the atoms in the bond. These masses are used
+            to shift the bond coordinate while maintaining a
+            constant center of mass (The default is [1.008, 17.007]
+            which is the mass of H, and the mass of O+H, respectively.)
+        inner_cutoff : float
+            The inner cutoff for the cluster. This cutoff specifies what should
+            be treated quantum mechanically. (The default is 4.0 angstroms.)
+        outer_cutoff : float
+            The outer cutoff for the cluster. This cutoff specifies what should
+            be treated classically. (The default is 8.0 angstroms.)
+        scan_dr : float
+            The step size for the scan along the bond axis. (The default is 0.04 angstroms.)
+        ngrid : int
+            The number of gridpoints for the scan. (The default is 14.)
+        rmin : float
+            The minimum distance for the scan. (The default is 0.72 angstroms.)
+        nproc : int
+            The number of processors to use for the Gaussian calculations. (The default is 4.)
+        mem : int
+            The amount of memory to use for the Gaussian calculations. (The default is 20.)
 
         """
         print("MapSetup Initializing...")
@@ -56,6 +125,9 @@ class MapSetup:
         return
 
     def description(self):
+        """ Print the description of the MapSetup class
+
+        """
         print("Selection: %s" % self.selection)
         print("Inner cutoff: %10.5f" % self.inner_cutoff)
         print("Outer cutoff: %10.5f" % self.outer_cutoff)
@@ -65,12 +137,25 @@ class MapSetup:
         """
         Load the universe using the topology and trajectory files
 
-        Args:
-            topology (str): The topology file
-            trajectory (str): The trajectory file
+        Stores the MDAnalysis universe as an attribute of the class.
+
+        Parameters:
+        ----------
+        *args: 
+            The topology and trajectory files, respectively. These are
+            passed directly to the MDAnalysis Universe class.
+        **kwargs:
+            Any keyword arguments to pass to the MDAnalysis Universe class.
+            Please see the MDAnalysis documentation for more information.
 
         Returns:
-            None
+        -------
+        None
+
+        Raises:
+        ------
+        ValueError: 
+            If the universe cannot be loaded.
 
         """
         if len(args) == 0:
@@ -85,118 +170,316 @@ class MapSetup:
 
         return
 
-    def set_charges_from_list(self, charges):
+    def set_attribute_from_list(self, attribute, inputdata):
         """
-        Set the charges
+        Set the charges from a list
 
-        Args:
-            charges (list): The charges
+        Parameters:
+        ----------
+        attribute : str
+            The attribute to set. This should be a string that is a valid
+            attribute of the atoms in the universe. [e.g. "charges"]
+        inputdata : array_like
+            The inputdata for the atoms in the universe. These should be in the
+            same order as the atoms in the universe.
 
         Returns:
-            None
+        -------
+        None
+
+        Raises:
+        ------
+        TypeError
+            If the attribute is not a string.
+        ValueError
+            If the number of charges does not match the number of atoms in the universe.
+
         """
-        self.universe.add_TopologyAttr("charges")
-        self.universe.atoms.charges = charges
+        if not isinstance(attribute, str):
+            raise TypeError("The attribute must be a string.")
+
+        if len(inputdata) != len(self.universe.atoms):
+            raise ValueError(
+                "The number of inputdata does not match the number of atoms in the universe.")
+
+        self.universe.add_TopologyAttr(attribute)
+        setattr(self.universe.atoms, attribute, inputdata)
         return
 
-    def set_charges_by_type(self, charge_dict):
+    def set_attribute_by_type(self, attribute, input_dict):
         """
-        Set the charges by type
+        Set the inputdata by type using a dictionary
 
-        Args:
-            charges (dict): The charges
+        Parameters:
+        ----------
+        attribute : str
+            The attribute to set. This should be a string that is a valid
+            attribute of the atoms in the universe. [e.g. "charges"]
+        input_dict : dict
+            The input data dictionary mapped to types. The keys should be the
+            types in the universe, and the values should be the input data for
+            the types. (e.g. {"O": 0.834, "H": 0.417})
 
         Returns:
-            None
+        -------
+        None
+
+        Raises:
+        ------
+        TypeError
+            If the input data is not a dictionary
+        ValueError
+            If the number of charges does not match the number of atoms in the universe.
+
         """
-        charges = []
+        if not isinstance(input_dict, dict):
+            raise TypeError("The input data must be a dictionary.")
+        try:
+            self.universe.atoms.types
+        except:
+            raise ValueError("No types found in the universe.")
+
+        # Build the data list
+        data_list = []
         for type in self.universe.atoms.types:
-            charges.append(charge_dict[type])
-        self.set_charges_from_list(charges)
+            data_list.append(input_dict[type])
+        # Set the attribute
+        self.set_attribute_from_list(attribute, data_list)
         return
 
-    def grab_clusters_from_frames(self, frames):
+    def grab_clusters_from_frames(self, frames, file_prefix="scan_"):
         """ Grab the clusters from the frames
 
-        Args:
-            frames (list): List of frames to grab the clusters from
+        Notes:
+        -----
+
+
+        Parameters:
+        ----------
+        frames : list
+            The frames to grab the clusters from. These should be the indices
+            of the frames in the trajectory. (e.g. [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        file_prefix : str
+            The file prefix for the Gaussian input files. (The default is "scan_")
+            Thus, this will create files like "scan_0.gjf", "scan_1.gjf", etc.
 
         Returns:
-            None
+        -------
+        None
+
+        Raises:
+        ------
+        ValueError
+            If the universe is not set up properly. This is based on the status
+            of the universe set by the _test_universe method.
 
         """
         status = self._test_universe()
         if not status:
             raise ValueError("Universe is not set up properly.")
+
+        # Loop over the frames in the trajecotry
         for ts in self.universe.trajectory[frames]:
+            # Grab the box dimensions
             box = ts.dimensions[:3]
+            # Grab the clusters
             res, inner, outer = self._grab_cluster(box)
-            self.write_gaussian(res, inner, outer, ts.frame, "scan_")
+            # Write the Gaussian input files
+            vib_bond_distances = self.write_gaussian(
+                res, inner, outer, ts.frame, file_prefix)
+            self.write_output_data(
+                res, inner, outer, ts.frame, file_prefix, vib_bond_distances)
+
         return
+
+    def write_output_data(self, resid, inner, outer, frame_number, file_prefix, vib_bond_distances):
+        """ Write the output data needed for the empirical map
+
+        Notes:
+        -----
+        This method writes the output data needed for the empirical map. This
+        includes the bond vector, the field on the residue from the cluster, the
+        projected field on the residue from the cluster, and the distance from the
+        gridpoint.
+
+        The files created (for an example directory) are:
+        newmap/0/scan_eOHs.dat          # The bond vector values for the cluster (eOH)
+        newmap/0/scan_fields.dat        # The field on the residue from the cluster
+        newmap/0/scan_rOHs.dat          # The rOH values for the scan
+        newmap/0/scan_proj_field.dat    # The projected field on the residue from the cluster
+
+        Parameters:
+        ----------
+        resid : MDAnalysis.AtomGroup
+            The residue to write the output data for. This is the central residue.
+        inner : MDAnalysis.AtomGroup
+            The inner cluster to write the output data for. This is the cluster
+            treated quantum mechanically.
+        outer : MDAnalysis.AtomGroup
+            The outer cluster to write the output data for. This is the cluster
+            treated classically.
+        frame_number : int
+            The frame number for the output data. This is used to create a
+            subdirectory for the frame.
+        file_prefix : str
+            The file prefix for the output data. This is used to create the
+            file names for the output data.
+        vib_bond_distances : np.ndarray, shape(self.ngrid)
+            The bond distance values for the scan.
+
+        Returns:
+        -------
+        None
+
+        """
+
+        calc_subdir = self.calc_dir + "%d/" % frame_number
+
+        # Calculate the Static Parameters
+        # calculate the bond vector
+        vib_bond_vector = self._calc_bond_vector(
+            resid[self.bond_atoms[1]].position,
+            resid[self.bond_atoms[0]].position)
+        field = self._field_on_atom_from_cluster(resid, inner, outer)
+        proj_field = self._project_field(field, vib_bond_vector)
+
+        # Write the Static Parameters to Files
+        np.savetxt(calc_subdir+file_prefix+"eOHs.dat", vib_bond_vector)
+        np.savetxt(calc_subdir+file_prefix+"fields.dat", field)
+        np.savetxt(calc_subdir+file_prefix+"rOHs.dat", vib_bond_distances)
+        np.savetxt(calc_subdir+file_prefix+"proj_field.dat", [proj_field])
 
     def write_gaussian(self, resid, inner, outer, frame_number, file_prefix, functional="b3lyp", basis="6-311G(d,p)"):
         """
-        Write the cluster to a file
+        Write the Gaussian input files, and the output data
 
-        Args:
-            resid (MDAnalysis.AtomGroup): The residue
-            inner (MDAnalysis.AtomGroup): The inner cluster
-            outer (MDAnalysis.AtomGroup): The outer cluster
-            frame_number (int): The frame number
-            file_prefix (str): The file prefix
-            functional (str): The functional [default: b3lyp]
-            basis (str): The basis set [default: 6-311G(d,p)]
+        Notes:
+        -----
+        This method writes the Gaussian input files for the clusters. It also
+        calculates the static parameters for the clusters and writes them to
+        files.
+
+        The files created (for an example directory) are:
+        newmap/0/scan_0.gjf             # The Gaussian input file
+        newmap/0/scan_0.xyz             # The XYZ file for the cluster (shows the stretched coordinate)
+
+
+        Parameters:
+        ----------
+        resid : MDAnalysis.AtomGroup
+            The residue to write the Gaussian input files for. This is the
+            central residue.
+        inner : MDAnalysis.AtomGroup
+            The inner cluster to write the Gaussian input files for. This is
+            the cluster treated quantum mechanically.
+        outer : MDAnalysis.AtomGroup
+            The outer cluster to write the Gaussian input files for. This is
+            the cluster treated classically.
+        frame_number : int
+            The frame number for the Gaussian input files. This is used to
+            create a subdirectory for the frame.
+        file_prefix : str
+            The file prefix for the Gaussian input files. This is used to
+            create the file names for the Gaussian input files and the
+            output data.
+        functional : str
+            The functional for the Gaussian input files. (The default is "b3lyp")
+        basis : str
+            The basis set for the Gaussian input files. (The default is "6-311G(d,p)")
 
         Returns:
-            None
+        -------
+        vib_bond_distances : np.ndarray, shape(self.ngrid)
+            The bond distance values for the scan.
 
         """
         calc_subdir = self.calc_dir + "%d/" % frame_number
         if not os.path.exists(calc_subdir):
             os.makedirs(calc_subdir)
 
+        # Open the gaussian
         finp = open(calc_subdir+file_prefix+"%s.gjf" % frame_number, "w")
         fxyz = open(calc_subdir+file_prefix+"%s.xyz" % frame_number, "w")
+        # Write the header of the gaussian file
         finp.write("%"+"NProcShared=%d\n" % self.nproc)
         finp.write("%"+"Mem=%dGB\n" % self.mem)
         finp.write("%chk=calc.chk\n")
-        rOHs = np.zeros(self.ngrid)
+
+        vib_bond_distances = np.zeros(self.ngrid)
+
+        # Loop over the gridpoints
         for n in range(self.ngrid):
+            # Add the link block if n>0
             if n > 0:
                 finp.write("--Link1--\n")
                 finp.write("\n")
             # Write the gridpoint to the file
-            rOH, atypes, coords = self._write_gridpoint(
-                finp, n, resid, inner, outer)
+            vib_bond_distance, atypes, coords = self._write_gridpoint(
+                finp, n, resid, inner, outer,
+                functional=functional, basis=basis)
             self._write_xyz_traj(fxyz, atypes, coords)
             # Store the distance from the gridpoint
-            rOHs[n] = rOH
+            vib_bond_distances[n] = vib_bond_distance
+
+        # Close the files
         finp.close()
         fxyz.close()
 
-        # Calculate the Static Parameters
-        eOH = self._calc_bond_vector(
-            resid[self.bond_atoms[1]].position,
-            resid[self.bond_atoms[0]].position)
-        field = self._field_on_atom_from_cluster(resid, inner, outer)
-        proj_field = self._project_field(field, eOH)
-
-        np.savetxt(calc_subdir+file_prefix+"eOHs.dat", eOH)
-        np.savetxt(calc_subdir+file_prefix+"fields.dat", field)
-        np.savetxt(calc_subdir+file_prefix+"rOHs.dat", rOHs)
-        np.savetxt(calc_subdir+file_prefix+"proj_field.dat", [proj_field])
-        return
+        return vib_bond_distances
 
     def _write_xyz_traj(self, f, atypes, coords):
+        """ Write the XYZ trajectory
+
+        Parameters:
+        ----------
+        f : file_object
+            The file object to write to.
+        atypes : list
+            The atom types
+        coords : np.ndarray, shape(n, 3)
+            The coordinates of the atoms
+
+        """
         f.write("%d\n" % len(atypes))
-        f.write("Water Scan\n")
+        f.write("Bond Scan\n")
         for i, atype in enumerate(atypes):
             f.write("%s %10.5f %10.5f %10.5f\n" %
                     (atype, coords[i][0], coords[i][1], coords[i][2]))
         return
 
     def _write_gridpoint(self, f, n, resid, inner, outer, functional="b3lyp", basis="6-311G(d,p)"):
-        rOH, rtmp1, rtmp2, rtmpO = self._calc_rOH_distance(resid, n)
+        """ Write the gridpoint to the Gaussian input file
+
+        Parameters:
+        ----------
+        f : file_object
+            The file object to write to.
+        n : int
+            The gridpoint number.
+        resid : MDAnalysis.AtomGroup
+            The residue to write the gridpoint for. This is the central residue.
+        inner : MDAnalysis.AtomGroup
+            The inner cluster to write the gridpoint for. This is the cluster
+            treated quantum mechanically.
+        outer : MDAnalysis.AtomGroup
+            The outer cluster to write the gridpoint for. This is the cluster
+            treated classically.
+        functional : str
+            The functional for the Gaussian input files. (The default is "b3lyp")
+        basis : str
+            The basis set for the Gaussian input files. (The default is "6-311G(d,p)")
+
+        Returns:
+        -------
+        bond_distance : float
+            The distance from the gridpoint
+        atypes : list
+            The atom types
+        coords : np.ndarray, shape(n, 3)
+            The coordinates of the atoms
+
+        """
+        bond_distance, rtmp1, rtmp2, rtmpO = self._calc_rOH_distance(resid, n)
         atypes, coords = [], []
         f.write("#n %s/%s empiricaldispersion=gd3 Charge\n" %
                 (functional, basis))
@@ -227,37 +510,83 @@ class MapSetup:
             coords.append(pos)
             atypes.append(outer.atoms.types[i])
         f.write("\n")
-        return rOH, atypes, coords
+        return bond_distance, atypes, coords
 
     def _calc_bond_vector(self, r1, r2):
+        """ Calculate the bond vector
+
+        Parameters:
+        ----------
+        r1 : np.ndarray, shape(3)
+            The position of the first atom
+        r2 : np.ndarray, shape(3)
+            The position of the second atom
+
+        Returns:
+        -------
+        e_vector : np.ndarray, shape(3)
+            The unit vector pointing along the bond
+
+        """
         e_vector = np.zeros(3)
         e_vector = np.subtract(r1, r2)
         norm = np.sqrt(np.dot(e_vector, e_vector))
         e_vector = e_vector / norm
         return e_vector
 
-    def _project_field(self, field, eOH):
-        return np.array(np.dot(field, eOH)*self.constants.angperau**2.)
+    def _project_field(self, field, bond_vector):
+        """ Project the field onto the bond axis
+
+        Notes:
+        -----
+        This method projects the field onto the bond axis. This is used to
+        calculate the field on the bond axis.
+
+        Parameters:
+        ----------
+        field : np.ndarray, shape(3)
+            The field on the residue from the cluster
+        bond_vector : np.ndarray, shape(3)
+            The bond unit vector
+
+        Returns:
+        -------
+        np.ndarray, shape(3)
+            The projected field onto the unit vector
+
+        Raises:
+        ------
+        ValueError
+            If the bond vector is not a unit vector.
+
+        """
+        if np.abs(np.dot(bond_vector, bond_vector) - 1.0) > 1e-6:
+            raise ValueError("Bond vector is not a unit vector.")
+
+        return np.array(np.dot(field, bond_vector)*self.constants.angperau**2.)
 
     def _calc_rOH_distance(self, resid, n):
         """ Calculate the rOH distance
 
-        Args:
-            resid (MDAnalysis.AtomGroup): The residue
-            n (int): The gridpoint
+        Parameters:
+        ----------
+        resid : MDAnalysis.AtomGroup
+            The residue to calculate the rOH distance for. This is the central
+            residue.
+        n : int
+            The gridpoint number.
 
         Returns:
+        -------
             rOH (float): The distance
             rtmp1 (np.ndarray): The position of atom 1
             rtmp2 (np.ndarray): The position of atom 2
             rtmpO (np.ndarray): The position of the oxygen
 
-        Todo:
-            Need to make this more general
+
         """
 
         # Grab the Positions
-
         ratom1 = resid[self.bond_atoms[0]].position
         ratom2 = resid[self.bond_atoms[1]].position
         rother = resid[2].position
@@ -269,6 +598,8 @@ class MapSetup:
         rtmp2 = np.zeros(3)
         rtmpO = np.zeros(3)
 
+        # Calculate the New Positions for the scan
+        # while maintaining the center of mass
         rtmp1 = ratom1 + (self.bond_masses[1]) * \
             e_vector * (self.rmin+self.scan_dr*n)/self.total_mass
         rtmp2 = rother - (self.bond_masses[0])*e_vector * \
@@ -276,20 +607,41 @@ class MapSetup:
         rtmpO = ratom1 - (self.bond_masses[0])*e_vector * \
             (self.rmin+self.scan_dr*n)/self.total_mass
 
+        # Calculate the rOH distance
         rOH = np.sqrt(np.sum(np.subtract(rtmp1, rtmpO)**2.))
+
         return rOH, rtmp1, rtmp2, rtmpO
 
     def _field_on_atom_from_cluster(self, resid, inner, outer):
         """
         Calculate the field on the residue from the cluster
 
-        Args:
-            resid (MDAnalysis.AtomGroup): The residue
-            inner (MDAnalysis.AtomGroup): The inner cluster
-            outer (MDAnalysis.AtomGroup): The outer cluster
+        Notes:
+        -----
+        This method calculates the field on the residue from the cluster. This
+        is done by summing the field from each atom in the cluster. The field
+        from each atom is calculated as:
+
+        F = q(r-r0)/|r-r0|^3
+
+        where q is the charge, r is the position of the atom, and r0 is the
+        position of the residue.
+
+        Parameters:
+        ----------
+        resid : MDAnalysis.AtomGroup
+            The residue to calculate the field for. This is the central residue.
+        inner : MDAnalysis.AtomGroup
+            The inner cluster to calculate the field for. This is the cluster
+            treated quantum mechanically.
+        outer : MDAnalysis.AtomGroup
+            The outer cluster to calculate the field for. This is the cluster
+            treated classically.
 
         Returns:
-            field (np.ndarray): The field on the residue
+        -------
+        field : np.ndarray, shape(3)
+            The field on the residue from the cluster
 
         """
         cluster = inner.concatenate(outer)
@@ -300,23 +652,6 @@ class MapSetup:
             dr = resid[self.bond_atoms[1]].position - atom.position
             dist = np.sqrt(np.sum(dr**2.))
             field += atom.charge*dr/dist**3.
-        """
-        resO = resid.select_atoms("type O").positions[0]
-        resH = resid.select_atoms("type H").positions[0]
-
-        rO = cluster.select_atoms("type O").positions
-        rH = cluster.select_atoms("type H").positions
-
-        for pos in rO:
-            # HO
-            drHO = resH - pos
-            rHO = np.sqrt(np.sum(drHO**2.))
-            field += self.charges["O"]*drHO/rHO**3
-        for pos in rH:
-            drHH = resO - pos
-            rHH = np.sqrt(np.sum(drHH**2.))
-            field += self.charges["H"]*drHH/rHH**3
-        """
 
         return field
 
@@ -324,18 +659,30 @@ class MapSetup:
         """
         Grab the clusters for the current frame
 
+        Notes:
+        -----
+        This method grabs the clusters for the current frame. It does this by first
+        selecting the residue, and then selecting the inner and outer clusters.
+
+        Note - the clusters are wrapped to the central molecule.
+
+
+
+        Parameters:
+        ----------
+        Lbox : np.ndarray, shape(3)
+            The box dimensions, in angstroms
+        resid_override : int
+            The residue to override the random choice with, if desired.
+
         Returns:
-            resid (MDAnalysis.AtomGroup): The random residue number
-            inner (MDAnalysis.AtomGroup): The inner cluster
-            outer (MDAnalysis.AtomGroup): The outer cluster
-
-
-        TODO:
-            1) Make resids be of a certain type - otherwise, this won't work for mixed systems
-            2) Need to modify the selections so that it picks the right central atom
-                Ideally, this needs to happen in the selection string so that it can happen
-                in one step. 
-            3) 
+        -------
+        resid : MDAnalysis.AtomGroup
+            The residue for the current frame
+        inner : MDAnalysis.AtomGroup
+            The inner cluster for the current frame
+        outer : MDAnalysis.AtomGroup
+            The outer cluster for the current frame
 
         """
         # Pull a Random Resid
@@ -347,6 +694,7 @@ class MapSetup:
         resid_sel = "resid %d" % random_resid
         resid = self.universe.select_atoms("%s" % resid_sel)
         resid_central_index = resid[self.central_atom].index
+
         # Select the Inner and Outer Clusters
         inner_sel = "same residue as (%s and around %10.5f index %d)" % (
             self.selection, self.inner_cutoff, resid_central_index)
@@ -373,15 +721,28 @@ class MapSetup:
 
     def _wrap_to_resid(self, resid, towrap, Lbox):
         """
-        Wrap the cluster to the box
+        Wrap the cluster to the central residue
 
-        Args:
-            resid (MDAnalysis.AtomGroup): The residue
-            towrap (MDAnalysis.AtomGroup): The cluster to wrap
-            Lbox (np.ndarray): The box dimensions
+        Notes:
+        -----
+        This method wraps the cluster to the central residue. It does this by
+        calculating the distance from the central residue, and then wrapping the
+        cluster to the central residue.
+
+        Parameters:
+        ----------
+        resid : MDAnalysis.AtomGroup
+            The central residue
+        towrap : MDAnalysis.AtomGroup
+            The cluster to wrap
+        Lbox : np.ndarray, shape(3)
+            The box dimensions, in angstroms
 
         Returns:
-            towrap (MDAnalysis.AtomGroup): The wrapped cluster
+        -------
+        towrap : MDAnalysis.AtomGroup
+            The wrapped cluster
+
         """
         central_pos = resid.positions[0]
         newpos = []
@@ -396,8 +757,22 @@ class MapSetup:
         """
         Test the universe
 
+        Parameters:
+        ----------
+        None
+
         Returns:
-            None
+        -------
+        status_of_universe : bool
+            The status of the universe. This is True if the universe contains
+            the needed information. This includes charges, masses, and types.
+
+        Raises:
+        ------
+        UserWarning
+            If the universe does not contain the needed information. This
+            includes charges, masses, and types.
+
         """
         status_of_universe = True
         try:
