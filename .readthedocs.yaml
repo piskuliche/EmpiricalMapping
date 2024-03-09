@@ -9,7 +9,7 @@ python:
   install:
     - requirements: docs/requirements.txt
     - method: pip
-      path: empmap
+      path: .
 
 sphinx:
   configuration: docs/source/conf.py
