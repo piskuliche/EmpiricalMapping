@@ -2,7 +2,7 @@
     calculations for the empirical map.
 
 Notes:
------
+------
 The MapSetup class is used to set up the calculations for the empirical map.
 It is initialized with the selection, bond atoms, central atom, bond masses, inner
 cutoff, outer cutoff, calculation directory, scan dr, ngrid, and rmin.
@@ -35,7 +35,7 @@ Example:
 >>> setup.set_charges_by_type(charges)
 
 To Do:
------
+------
 1) Make Masses + Total Mass Read In + charges
 2) Add Selections for Bond to be scanned
 3) Refactor _field_on_atom_from_cluster to use MDAnalysis charges.
