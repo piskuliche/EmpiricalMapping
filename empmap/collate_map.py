@@ -12,7 +12,6 @@ To Do:
 ------
     1) Write the map files consistent with frequencymap.org
 
-
 """
 
 import numpy as np
