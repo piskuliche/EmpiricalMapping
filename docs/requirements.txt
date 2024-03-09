@@ -4,4 +4,3 @@ numpy
 scipy
 matplotlib
 MDAnalysis
--e .
