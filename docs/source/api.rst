@@ -1,7 +1,7 @@
 API
 ===
 
-.. autoclass::
+.. automodule::
    :toctree: _autosummary
    :members:
 
