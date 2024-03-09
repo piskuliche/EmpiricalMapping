@@ -11,12 +11,14 @@ how to :ref:`installation` the project.
 
    This project is under active development.
 
-Contents
---------
+API
+===
 
-.. toctree::
-   :maxdepth: 5
-   :caption: Contents:
+.. automodule:: empmap
+   :members:
 
-   usage
-   api
+Indies and Tables
+=================
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
