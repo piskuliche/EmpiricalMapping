@@ -1,13 +1,66 @@
+""" This module contains functions to fit the potential energy and dipole moment to a polynomial. 
+
+Notes:
+------
+These functions are used to fit the potential energy and dipole moment to a polynomial. The potential energy is fit to a polynomial of the form:
+V = a + 0.5*c*dx^2 + d*dx**3 + e*dx**4 + ...
+
+    Where dx = x - b.
+
+The dipole moment is fit to a polynomial of the form:
+mu = a + b*x + c* x^2 + ...
+    
+    Where x is the bond distance.
+
+Examples:
+---------
+>>> from empmap.poly_fit import poly_fit_selector
+>>> poly_fit_selector(2)
+<function poly_fit_selector.<locals>.fitfunc at 0x7f9e8e9b7f28>
+
+>>> from empmap.poly_fit import mu_fit_selector
+>>> mu_fit_selector(2)
+<function mu_fit_selector.<locals>.mfunc at 0x7f9e8e9b7f28>
+
+"""
+
+__all__ = ["poly_fit_selector", "mu_fit_selector"]
+
+
 def poly_fit_selector(order):
     """
     Returns a list of fitting functions for the given order.
 
-    Args:
-        order: int, the order of the fitting function.
+    Notes:
+    ------
+    These fitting functions are used to fit the potential energy to a polynomial.
+
+    They are of the form:
+    V = a + 0.5*c*dx^2 + d*dx**3 + e*dx**4 + ...
+
+    Where dx = x - b.
+
+    Special Case: If the order is 1, the fitting function is linear:
+    V = a + b*x
+
+    Parameters:
+    ----------
+        order: int
+            The order of the fitting function.
 
     Returns:
-        fitfunc: function, the fitting function.
+    -------
+        fitfunc: function
+            The fitting function. Parameters are in order (x, a b, c, d, e, ...)
+
+    Raises:
+    ------
+        ValueError: If the order is not an integer.
+
     """
+    if not isinstance(order, int):
+        raise ValueError("The order must be an integer.")
+
     if order == 1:
         def fitfunc(x, a, b):
             return a + b*x
@@ -63,13 +116,31 @@ def mu_fit_selector(order):
     """
     Returns a list of fitting functions for the given order.
 
-    Args:
-        order: int, the order of the fitting function.
+    Notes:
+    ______
+    These fitting functions are used to fit the dipole moment to a polynomial.
+
+    They are of the form:
+    mu = a + b*x + c* x^2 + ...
+
+    Parameters:
+    ----------
+        order: int
+            The order of the fitting function. Available options are 1, 2, 3, 4, 5, 6, 7.
 
     Returns:
-        mfunc: function, the fitting function.
+    -------
+        mfunc: function
+            The fitting function. Parameters are in order (x, a, b, c, d, e, f, g)
+
+    Raises:
+    ------
+        ValueError: If the order is not an integer.
 
     """
+    if not isinstance(order, int):
+        raise ValueError("The order must be an integer.")
+
     if order == 1:
         def mfunc(x, a, b):
             return a + b*x
