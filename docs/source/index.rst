@@ -14,8 +14,12 @@ how to  the project.
 API
 ===
 
-.. automodule:: empmap
-   :members:
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-module-template.rst
+   :recursive:
+
+   empmap
 
 Indies and Tables
 =================
