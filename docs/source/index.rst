@@ -14,12 +14,8 @@ how to  the project.
 API
 ===
 
-.. autosummary::
-   :toctree: _autosummary
-   :template: custom-module-template.rst
-   :recursive:
-
-   .
+.. automodule:: empmap.collate_map
+   :members:
 
 Indies and Tables
 =================
