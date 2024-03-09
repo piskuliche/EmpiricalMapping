@@ -3,7 +3,7 @@ API
 
 .. autosummary::
    :toctree: _autosummary
-   :template: custom-class-template.rst
+   :template: custom-module-template.rst
    :recursive:
 
    empmap
