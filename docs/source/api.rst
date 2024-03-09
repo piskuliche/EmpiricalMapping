@@ -1,8 +1,7 @@
 API
 ===
 
-.. automodule::
+.. automodule:: empmap
    :toctree: _autosummary
    :members:
 
-   empmap
