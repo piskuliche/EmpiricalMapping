@@ -147,7 +147,7 @@ class EmpiricalMap:
 
         Paramters:
         ----------
-        **kwargs : arguments
+        kwargs : arguments
             Keyword arguemnts to be passed to the _obtain_dvrs function.
 
         Returns:
