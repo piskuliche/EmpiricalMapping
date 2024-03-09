@@ -2,14 +2,14 @@
 This module contains the EmpiricalMap class that is used to build an empirical map from a series of QM calculations on a 1D potential.
 
 Notes:
------
+------
 This code works on the gaussian calculations setup by emp_setup.py and then fits the potential energy surfaces. 
 It then goes through and uses those potential energy surfaces for a sinc function discrete variable representation (See Colbert, Miller Paper) 
 to obtain the eigenvalues and eigenvectors. For each directory, a value of the key parameters w01, w12... etc. are obtained. 
 These are then used to fit an empirical map based on the total data.
 
 To Do:
------
+------
     1) Write the map files consistent with frequencymap.org
 
 
@@ -30,7 +30,7 @@ class EmpiricalMap:
     """ The EmpiricalMap Class that builds an empirical map from a series of QM calculations on a 1D potential.
 
     Notes:
-    -----
+    ------
     This code works on the gaussian calculations setup by emp_setup.py and then fits the potential energy surfaces
     and then goes through and uses those potential energy surfaces for a sinc function discrete variable representation
     (See Colbert, Miller Paper) to obtain the eigenvalues and eigenvectors. For each directory, a value of the key parameters
@@ -42,7 +42,7 @@ class EmpiricalMap:
         """ Initializes the EmpiricalMap Class
 
         Notes:
-        _____
+        ------
         The EmpiricalMap class is used to build an empirical map from a series of QM calculations on a 1D potential.
         It pulls data from each of the directories used by the QM calculations and then uses that data to build the empirical map.
         This generally involves fitting the potential energy surfaces and then using those potential energy surfaces for a sinc function
@@ -51,7 +51,7 @@ class EmpiricalMap:
 
 
         Parameters:
-        ----------
+        -----------
         file_list : array_like
             List of file numbers to use.
         file_start : int
@@ -95,18 +95,18 @@ class EmpiricalMap:
         """ Fits an attribute of the map to a polynomial of order order.
 
         Parameters:
-        ----------
+        -----------
         attribute : str
             The attribute to fit. This should be one of the attributes of the EmpiricalMap class.
         order : int
             The order of the polynomial to fit.
 
         Returns:
-        -------
+        --------
         None
 
         Raises:
-        ------
+        -------
         ValueError: If the attribute is not present in the class.
 
         """
@@ -124,6 +124,7 @@ class EmpiricalMap:
         self._display_fit(poly, popt, values_to_fit, attribute)
 
     def _print_fit(self, popt, attribute):
+        """ Prints the fit to the screen. """
         if len(popt) == 2:
             print("%s = %10.4f + %10.4f*E" % (attribute, popt[0], popt[1]))
         elif len(popt) == 3:
@@ -132,6 +133,7 @@ class EmpiricalMap:
         return
 
     def _display_fit(self, poly, popt, values, attribute):
+        """ Displays the fit to the screen. """
         fig = plt.figure()
         es = np.linspace(self.Eproj.min(), self.Eproj.max(), 100)
         plt.scatter(self.Eproj, values)
@@ -143,11 +145,14 @@ class EmpiricalMap:
     def build_base_data(self, **kwargs):
         """ Build data using the DVR approach. 
 
-        Args:
-            **kwargs: Keyword arguemnts to be passed to the _obtain_dvrs function.
+        Paramters:
+        ----------
+        **kwargs : 
+            Keyword arguemnts to be passed to the _obtain_dvrs function.
 
         Returns:
-            None
+        --------
+        None
         """
         dvrs, dvr_read_successful = self._obtain_dvrs(**kwargs)
         self._build_from_dvr(dvrs)
@@ -168,17 +173,27 @@ class EmpiricalMap:
     def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3, max_fail=10):
         """ Code to contstruct and obtain eigenvalues and eigenvectors using the DVR approach.
 
-        Args:
-            emax (float): Energy maximum in eV
-            xmax (float): Position maximum in Angstroms
-            mass1 (float): Mass of atom 1 (g/mol)
-            mass2 (float): Mass of atom 2 (g/mol)
-            pot_poly_order (int): Order of Potential1D potential polynomial
-            dip_poly_order (int): Order of Potential1D dipole polynomial
+        Parameters:
+        -----------
+            emax : float
+                Energy maximum in eV
+            xmax : float
+                Position maximum in Angstroms
+            mass1 : float
+                Mass of atom 1 (g/mol)
+            mass2 : float
+                Mass of atom 2 (g/mol)
+            pot_poly_order : int
+                Order of Potential1D potential polynomial
+            dip_poly_order : int
+                Order of Potential1D dipole polynomial
 
         Returns
-            all_dvrs (list): All Calculated DVRs
-            dvr_read_successful (np.ndarray): Boolean list of successful and failed calculations.
+        -------
+            all_dvrs : list 
+                All Calculated DVRs
+            dvr_read_successful : np.ndarray
+                Boolean list of successful and failed calculations.
 
         """
         all_dvrs = []
