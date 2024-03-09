@@ -19,7 +19,7 @@ API
    :template: custom-module-template.rst
    :recursive:
 
-   .
+   empmap
 
 Indies and Tables
 =================
