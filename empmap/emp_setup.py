@@ -63,7 +63,7 @@ class MapSetup:
         Initialize the MapSetup class
 
         Parameters:
-        ----------
+        -----------
         calc_dir : str
             The directory for the calculations. (The default is 'newmap/' which
             will create a new directory called 'newmap' in the current working directory.)
@@ -140,7 +140,7 @@ class MapSetup:
         Stores the MDAnalysis universe as an attribute of the class.
 
         Parameters:
-        ----------
+        -----------
         *args: 
             The topology and trajectory files, respectively. These are
             passed directly to the MDAnalysis Universe class.
@@ -149,11 +149,11 @@ class MapSetup:
             Please see the MDAnalysis documentation for more information.
 
         Returns:
-        -------
+        --------
         None
 
         Raises:
-        ------
+        -------
         ValueError: 
             If the universe cannot be loaded.
 
@@ -175,7 +175,7 @@ class MapSetup:
         Set the charges from a list
 
         Parameters:
-        ----------
+        -----------
         attribute : str
             The attribute to set. This should be a string that is a valid
             attribute of the atoms in the universe. [e.g. "charges"]
@@ -184,11 +184,11 @@ class MapSetup:
             same order as the atoms in the universe.
 
         Returns:
-        -------
+        --------
         None
 
         Raises:
-        ------
+        -------
         TypeError
             If the attribute is not a string.
         ValueError
@@ -211,7 +211,7 @@ class MapSetup:
         Set the inputdata by type using a dictionary
 
         Parameters:
-        ----------
+        -----------
         attribute : str
             The attribute to set. This should be a string that is a valid
             attribute of the atoms in the universe. [e.g. "charges"]
@@ -221,11 +221,11 @@ class MapSetup:
             the types. (e.g. {"O": 0.834, "H": 0.417})
 
         Returns:
-        -------
+        --------
         None
 
         Raises:
-        ------
+        -------
         TypeError
             If the input data is not a dictionary
         ValueError
@@ -251,11 +251,11 @@ class MapSetup:
         """ Grab the clusters from the frames
 
         Notes:
-        -----
+        ------
 
 
         Parameters:
-        ----------
+        -----------
         frames : list
             The frames to grab the clusters from. These should be the indices
             of the frames in the trajectory. (e.g. [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -264,11 +264,11 @@ class MapSetup:
             Thus, this will create files like "scan_0.gjf", "scan_1.gjf", etc.
 
         Returns:
-        -------
+        --------
         None
 
         Raises:
-        ------
+        -------
         ValueError
             If the universe is not set up properly. This is based on the status
             of the universe set by the _test_universe method.
@@ -296,7 +296,7 @@ class MapSetup:
         """ Write the output data needed for the empirical map
 
         Notes:
-        -----
+        ------
         This method writes the output data needed for the empirical map. This
         includes the bond vector, the field on the residue from the cluster, the
         projected field on the residue from the cluster, and the distance from the
@@ -309,7 +309,7 @@ class MapSetup:
         newmap/0/scan_proj_field.dat    # The projected field on the residue from the cluster
 
         Parameters:
-        ----------
+        -----------
         resid : MDAnalysis.AtomGroup
             The residue to write the output data for. This is the central residue.
         inner : MDAnalysis.AtomGroup
@@ -328,7 +328,7 @@ class MapSetup:
             The bond distance values for the scan.
 
         Returns:
-        -------
+        --------
         None
 
         """
@@ -354,7 +354,7 @@ class MapSetup:
         Write the Gaussian input files, and the output data
 
         Notes:
-        -----
+        ------
         This method writes the Gaussian input files for the clusters. It also
         calculates the static parameters for the clusters and writes them to
         files.
@@ -365,7 +365,7 @@ class MapSetup:
 
 
         Parameters:
-        ----------
+        -----------
         resid : MDAnalysis.AtomGroup
             The residue to write the Gaussian input files for. This is the
             central residue.
@@ -388,7 +388,7 @@ class MapSetup:
             The basis set for the Gaussian input files. (The default is "6-311G(d,p)")
 
         Returns:
-        -------
+        --------
         vib_bond_distances : np.ndarray, shape(self.ngrid)
             The bond distance values for the scan.
 
@@ -431,7 +431,7 @@ class MapSetup:
         """ Write the XYZ trajectory
 
         Parameters:
-        ----------
+        -----------
         f : file_object
             The file object to write to.
         atypes : list
@@ -451,7 +451,7 @@ class MapSetup:
         """ Write the gridpoint to the Gaussian input file
 
         Parameters:
-        ----------
+        -----------
         f : file_object
             The file object to write to.
         n : int
@@ -470,7 +470,7 @@ class MapSetup:
             The basis set for the Gaussian input files. (The default is "6-311G(d,p)")
 
         Returns:
-        -------
+        --------
         bond_distance : float
             The distance from the gridpoint
         atypes : list
@@ -516,14 +516,14 @@ class MapSetup:
         """ Calculate the bond vector
 
         Parameters:
-        ----------
+        -----------
         r1 : np.ndarray, shape(3)
             The position of the first atom
         r2 : np.ndarray, shape(3)
             The position of the second atom
 
         Returns:
-        -------
+        --------
         e_vector : np.ndarray, shape(3)
             The unit vector pointing along the bond
 
@@ -538,24 +538,24 @@ class MapSetup:
         """ Project the field onto the bond axis
 
         Notes:
-        -----
+        ------
         This method projects the field onto the bond axis. This is used to
         calculate the field on the bond axis.
 
         Parameters:
-        ----------
+        -----------
         field : np.ndarray, shape(3)
             The field on the residue from the cluster
         bond_vector : np.ndarray, shape(3)
             The bond unit vector
 
         Returns:
-        -------
+        --------
         np.ndarray, shape(3)
             The projected field onto the unit vector
 
         Raises:
-        ------
+        -------
         ValueError
             If the bond vector is not a unit vector.
 
@@ -569,7 +569,7 @@ class MapSetup:
         """ Calculate the rOH distance
 
         Parameters:
-        ----------
+        -----------
         resid : MDAnalysis.AtomGroup
             The residue to calculate the rOH distance for. This is the central
             residue.
@@ -577,7 +577,7 @@ class MapSetup:
             The gridpoint number.
 
         Returns:
-        -------
+        --------
             rOH (float): The distance
             rtmp1 (np.ndarray): The position of atom 1
             rtmp2 (np.ndarray): The position of atom 2
@@ -617,7 +617,7 @@ class MapSetup:
         Calculate the field on the residue from the cluster
 
         Notes:
-        -----
+        ------
         This method calculates the field on the residue from the cluster. This
         is done by summing the field from each atom in the cluster. The field
         from each atom is calculated as:
@@ -628,7 +628,7 @@ class MapSetup:
         position of the residue.
 
         Parameters:
-        ----------
+        -----------
         resid : MDAnalysis.AtomGroup
             The residue to calculate the field for. This is the central residue.
         inner : MDAnalysis.AtomGroup
@@ -639,7 +639,7 @@ class MapSetup:
             treated classically.
 
         Returns:
-        -------
+        --------
         field : np.ndarray, shape(3)
             The field on the residue from the cluster
 
@@ -660,7 +660,7 @@ class MapSetup:
         Grab the clusters for the current frame
 
         Notes:
-        -----
+        ------
         This method grabs the clusters for the current frame. It does this by first
         selecting the residue, and then selecting the inner and outer clusters.
 
@@ -669,14 +669,14 @@ class MapSetup:
 
 
         Parameters:
-        ----------
+        -----------
         Lbox : np.ndarray, shape(3)
             The box dimensions, in angstroms
         resid_override : int
             The residue to override the random choice with, if desired.
 
         Returns:
-        -------
+        --------
         resid : MDAnalysis.AtomGroup
             The residue for the current frame
         inner : MDAnalysis.AtomGroup
@@ -724,13 +724,13 @@ class MapSetup:
         Wrap the cluster to the central residue
 
         Notes:
-        -----
+        ------
         This method wraps the cluster to the central residue. It does this by
         calculating the distance from the central residue, and then wrapping the
         cluster to the central residue.
 
         Parameters:
-        ----------
+        -----------
         resid : MDAnalysis.AtomGroup
             The central residue
         towrap : MDAnalysis.AtomGroup
@@ -739,7 +739,7 @@ class MapSetup:
             The box dimensions, in angstroms
 
         Returns:
-        -------
+        --------
         towrap : MDAnalysis.AtomGroup
             The wrapped cluster
 
@@ -758,17 +758,17 @@ class MapSetup:
         Test the universe
 
         Parameters:
-        ----------
+        -----------
         None
 
         Returns:
-        -------
+        --------
         status_of_universe : bool
             The status of the universe. This is True if the universe contains
             the needed information. This includes charges, masses, and types.
 
         Raises:
-        ------
+        -------
         UserWarning
             If the universe does not contain the needed information. This
             includes charges, masses, and types.

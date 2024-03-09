@@ -27,12 +27,12 @@ class GaussianLogFile:
         This class is used to read Gaussian log files and extract data from them. It is used to extract the energies and the dipole moments from the log files.
 
         Parameters:
-        ----------
+        -----------
         logname : str
             The name of the log file to read.
 
         Returns:
-        -------
+        --------
         None
 
         """
@@ -44,16 +44,16 @@ class GaussianLogFile:
         """ Grabs the energies from the log file
 
         Parameters:
-        ----------
+        -----------
         None
 
         Returns:
-        -------
+        --------
         energies : array_like
             The energies from the log file.
 
         Raises:
-        ------
+        -------
         ValueError: 
             If no energies are found in the log file.
 
@@ -79,16 +79,16 @@ class GaussianLogFile:
         """ Grabs the dipole moments from the log file
 
         Parameters:
-        ----------
+        -----------
         None
 
         Returns:
-        -------
+        --------
         dipole : array_like
             The dipole moments from the log file.
 
         Raises:
-        ------
+        -------
         ValueError: 
             If no dipole moments are found in the log file.
 

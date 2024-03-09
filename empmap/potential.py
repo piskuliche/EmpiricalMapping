@@ -93,7 +93,7 @@ class Morse:
         V(r) = de*(1 - exp(-a*(r - re)))^2
 
         Parameters:
-        ----------
+        -----------
             de : float
                 The dissociation energy [Energy Unit]
             a : float
@@ -102,7 +102,7 @@ class Morse:
                 The equilibrium bond length [Distance Unit]
 
         Returns:
-        -------
+        --------
             float: The Morse potential [Energy Unit]
 
         """
@@ -119,7 +119,7 @@ class Morse:
         B = sqrt(alpha^2*hbar^2/(2*mu*de))
 
         Parameters:
-        ----------
+        -----------
         alpha : float
             The Morse potential parameter [1/Distance Unit]
         mu : float
@@ -128,7 +128,7 @@ class Morse:
             The dissociation energy [Energy Unit]
 
         Returns:
-        -------
+        --------
         float: The Morse potential B factor [Energy Unit]
 
         """
@@ -157,7 +157,7 @@ class Morse:
             The quantum number
 
         Returns:
-        -------
+        --------
         float: The Morse potential eigenvalues [Energy Unit]
 
         """
@@ -215,7 +215,7 @@ class Potential1D:
 
         Returns:
         --------
-            None
+        None
 
         """
         poly = poly_fit_selector(order)
@@ -446,7 +446,7 @@ class Potential1D:
 
         Returns:
         --------
-            None
+        None
 
         Raises:
         -------

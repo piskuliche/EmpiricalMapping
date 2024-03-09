@@ -44,17 +44,17 @@ def poly_fit_selector(order):
     V = a + b*x
 
     Parameters:
-    ----------
+    -----------
         order: int
             The order of the fitting function.
 
     Returns:
-    -------
+    --------
         fitfunc: function
             The fitting function. Parameters are in order (x, a b, c, d, e, ...)
 
     Raises:
-    ------
+    -------
         ValueError: If the order is not an integer.
 
     """
@@ -117,24 +117,24 @@ def mu_fit_selector(order):
     Returns a list of fitting functions for the given order.
 
     Notes:
-    ______
+    ------
     These fitting functions are used to fit the dipole moment to a polynomial.
 
     They are of the form:
     mu = a + b*x + c* x^2 + ...
 
     Parameters:
-    ----------
+    -----------
         order: int
             The order of the fitting function. Available options are 1, 2, 3, 4, 5, 6, 7.
 
     Returns:
-    -------
+    --------
         mfunc: function
             The fitting function. Parameters are in order (x, a, b, c, d, e, f, g)
 
     Raises:
-    ------
+    -------
         ValueError: If the order is not an integer.
 
     """

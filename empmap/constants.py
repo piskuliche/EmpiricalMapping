@@ -1,14 +1,14 @@
 """ This is a class for physical constants
 
-Notes
------
+Notes:
+------
 
 This class is a simple way to store physical constants in a single place. It is
 intended to be used as a parent class for other classes, so that the constants
 can be accessed as attributes of the child classes.
 
-Examples
---------
+Examples:
+---------
 
 >>> from empmap.constants import ConstantsManagement
 >>> constants = ConstantsManagement()
@@ -24,8 +24,8 @@ import numpy as np
 class MathConstants:
     """ A class for mathematical constants
 
-    Notes
-    -----
+    Notes:
+    ------
     This class is a simple way to store mathematical constants in a single place.
     It is intended to be used as a parent class for other classes, so that the
     constants can be accessed as attributes of the child classes.
@@ -37,8 +37,8 @@ class MathConstants:
 class PhysicalConstants:
     """ A class for physical constants
 
-    Notes
-    -----
+    Notes:
+    ------
     This class is a simple way to store physical constants in a single place.
     It is intended to be used as a parent class for other classes, so that the
     constants can be accessed as attributes of the child classes.
@@ -51,8 +51,8 @@ class PhysicalConstants:
 class ConversionConstants:
     """ A class for conversion constants
 
-    Notes
-    -----
+    Notes:
+    ------
     This class is a simple way to store conversion constants in a single place.
     It is intended to be used as a parent class for other classes, so that the
     constants can be accessed as attributes of the child classes.

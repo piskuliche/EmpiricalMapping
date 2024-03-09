@@ -9,7 +9,9 @@ For more information on Discrete Variable Representations, Check out the followi
 Colber, Miller, A novel discrete variable representation for quantum mechanical
     reactive scattering via the S-matrix Kohn method, Journal of Chemical Physics,
     96, pp. 1982-1991 (1992).
+
 ToDo:
+-----
     Set up for other grid types [if necessary]
 """
 __all__ = ["DVR"]
@@ -34,7 +36,7 @@ class DVR:
         96, pp. 1982-1991 (1992).
 
     Attributes:
-    ----------
+    -----------
         constants (ConstantsManagement): The constants management class
         reduced_mass (float): The reduced mass (g/mol)
         emax (float): The energy cutoff (au)
@@ -64,14 +66,14 @@ class DVR:
         """ Initialize the DVR class. 
 
         Notes:
-        -----
+        ------
         This class is used to calculate the vibrational frequencies and dipole matrix elements
         for a 1D potential using the DVR method. The potential is fit to a polynomial and the
         dipole is fit to a polynomial. The vibrational frequencies and dipole matrix elements
         are calculated using the eigenvalues and eigenvectors of the Hamiltonian matrix.
 
         Parameters:
-        ----------
+        -----------
         pot1d : Potential1D
             The 1D potential object
         emax : float
@@ -88,7 +90,7 @@ class DVR:
             The number of grid points per deBroglie wavelength [default=10]
 
         Returns:
-        -------
+        --------
         None
 
         """
@@ -111,11 +113,13 @@ class DVR:
     def description(self):
         """ Print the description of the class
 
-        Args:
-            None
+        Parameters:
+        -----------
+        None
 
         Returns:
-            None
+        --------
+        None
         """
         print("DVR Class for 1D Potential")
         print("Reduced Mass: %10.5f au" % self.reduced_mass)
@@ -174,11 +178,13 @@ class DVR:
     def _set_frequencies(self):
         """ Set the vibrational frequencies
 
-        Args:
-            None
+        Parameters:
+        -----------
+        None
 
         Returns:
-            None
+        --------
+        None
         """
         if not hasattr(self, 'evals'):
             self._solve()
@@ -192,11 +198,13 @@ class DVR:
     def _solve(self):
         """ Solve the Hamiltonian
 
-        Args:
-            None
+        Parameters:
+        -----------
+        None
 
         Returns:
-            None
+        --------
+        None
         """
         self.evals, self.evecs = eigh(self.hamiltonian)
         return
@@ -206,7 +214,7 @@ class DVR:
         """ Calculate the kinetic energy prefactor 
 
         Notes:
-        -----
+        ------
         This is the prefactor for the kinetic energy in the Hamiltonian. It is a function of the
         reduced mass and the grid spacing.
 
@@ -216,11 +224,11 @@ class DVR:
         ke_pref = 1/(2 * mu * delr^2)
 
         Parameters:
-        ----------
+        -----------
         None
 
         Returns:
-        -------
+        --------
         float: 
             The kinetic energy prefactor in au
         """
@@ -230,18 +238,18 @@ class DVR:
         """ Set up the grid for the DVR representation
 
         Notes:
-        -----
+        ------
         This method sets up the grid for the DVR representation. It calculates the grid spacing
         and the refined grid based on the energy cutoff.
 
         It sets up the grid spacing and the refined grid based on the energy cutoff V<emax.
 
         Parameters:
-        ----------
+        -----------
         None
 
         Returns:
-        -------
+        --------
         None
 
         """
@@ -273,7 +281,7 @@ class DVR:
         Construct the hamiltionian matrix for the DVR
 
         Notes: 
-        -----
+        ------
             H[i,i] = V[i] + ke_pref * (pi^2/3 - 0.5/(i+1)^2)
             H[i,j] = (-1.0)^((i+1)-(j+1))*2.0* ke_pref * (1/((i+1)-(j+1))^2 - 1.0/(i+1 + j+1)^2)
 
@@ -284,11 +292,11 @@ class DVR:
             these equations in part comes from the fact that python uses 0, rather than 1, indexing.
 
         Parameters:
-        ----------
+        -----------
         None
 
         Returns:
-        -------
+        --------
         None
 
         """
@@ -310,7 +318,7 @@ class DVR:
         """ Calculate the reduced mass
 
         Notes:
-        -----
+        ------
         This method calculates the reduced mass of two particles.
 
         The formula is:
@@ -318,7 +326,7 @@ class DVR:
         mu = m1*m2/(m1+m2)
 
         Parameters:
-        ----------
+        -----------
         m1 : float
             The mass of the first particle (mass units)
         m2 : float
