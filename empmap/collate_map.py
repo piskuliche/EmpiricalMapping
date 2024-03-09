@@ -1,45 +1,80 @@
+"""
+This module contains the EmpiricalMap class that is used to build an empirical map from a series of QM calculations on a 1D potential.
+
+Notes:
+-----
+This code works on the gaussian calculations setup by emp_setup.py and then fits the potential energy surfaces. 
+It then goes through and uses those potential energy surfaces for a sinc function discrete variable representation (See Colbert, Miller Paper) 
+to obtain the eigenvalues and eigenvectors. For each directory, a value of the key parameters w01, w12... etc. are obtained. 
+These are then used to fit an empirical map based on the total data.
+
+To Do:
+-----
+    1) Write the map files consistent with frequencymap.org
+
+
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+
 from empmap.potential import Potential1D
 from empmap.sincdvr import DVR
 from empmap.constants import ConstantsManagement
 from empmap.poly_fit import mu_fit_selector
-from scipy.optimize import curve_fit
-import matplotlib.pyplot as plt
-import numpy as np
 
 
 class EmpiricalMap:
     """ The EmpiricalMap Class that builds an empirical map from a series of QM calculations on a 1D potential.
 
+    Notes:
+    -----
     This code works on the gaussian calculations setup by emp_setup.py and then fits the potential energy surfaces
     and then goes through and uses those potential energy surfaces for a sinc function discrete variable representation
     (See Colbert, Miller Paper) to obtain the eigenvalues and eigenvectors. For each directory, a value of the key parameters
     w01, w12... etc. are obtained. These are then used to fit an empirical map based on the total data.
-
-    To Do:
-        Check that the sinc dvr is being called in the right way.
-        Implement the actual empirical map fitting function.
 
     """
 
     def __init__(self, file_list=None, file_start=0, file_end=200, file_prefix="scan_", calc_dir="run_qm/"):
         """ Initializes the EmpiricalMap Class
 
-        Args:
-            file_list (np.array or None): If not None, gives a list of frames to grab data from.
-            file_start (int): Integer value to start grabbing files from [default=0]
-            file_end (int): Integer value to stop grabbing files from [default=200]
-            file_prefix (str): String that precedes filenames. [default=scan_]
-            calc_dir (str): String for the directory name. Should end with /[default=run_qm/]
+        Notes:
+        _____
+        The EmpiricalMap class is used to build an empirical map from a series of QM calculations on a 1D potential.
+        It pulls data from each of the directories used by the QM calculations and then uses that data to build the empirical map.
+        This generally involves fitting the potential energy surfaces and then using those potential energy surfaces for a sinc function
+        discrete variable representation (See Colbert, Miller Paper) to obtain the eigenvalues and eigenvectors. For each directory,
+        a value of the key parameters w01, w12... etc. are obtained. These are then used to fit an empirical map based on the total data.
+
+
+        Parameters:
+        ----------
+        file_list : array_like
+            List of file numbers to use.
+        file_start : int
+            Starting file number to use. [Default: 0]
+        file_end : int
+            Ending file number to use. [Default: 200]
+        file_prefix : str
+            Prefix of the file name. [Default: "scan_"]
+        calc_dir : str
+            Directory where the calculations are located. [Default: "run_qm/"]
 
         Returns:
             None
 
         """
         self.constants = ConstantsManagement()
+
+        # Set the file list, either by the input or by the range.
         if file_list is None:
             self.file_list = np.arange(file_start, file_end)
         else:
             self.file_list = file_list
+
         self.file_prefix = file_prefix
         self.calc_dir = calc_dir
 
@@ -57,11 +92,32 @@ class EmpiricalMap:
         raise NotImplemented("This function hasn't been implemented yet.")
 
     def fit_attribute_of_map(self, attribute, order):
+        """ Fits an attribute of the map to a polynomial of order order.
+
+        Parameters:
+        ----------
+        attribute : str
+            The attribute to fit. This should be one of the attributes of the EmpiricalMap class.
+        order : int
+            The order of the polynomial to fit.
+
+        Returns:
+        -------
+        None
+
+        Raises:
+        ------
+        ValueError: If the attribute is not present in the class.
+
+        """
+        # Grab the correct polynomial to fit.
         poly = mu_fit_selector(order)
 
+        # Check if the attribute is present in the class.
         if getattr(self, attribute) is None:
             raise ValueError(
                 "The attribute %s is not present in the class" % attribute)
+
         values_to_fit = getattr(self, attribute)
         popt, pcov = curve_fit(poly, self.Eproj, values_to_fit)
         self._print_fit(popt, attribute)
