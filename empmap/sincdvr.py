@@ -1,6 +1,22 @@
-from empmap.constants import ConstantsManagement
+""" Discrete Variable Representation (DVR) Method
+
+This module contains the Discrete Variable Representation (DVR) Method. The DVR method is used to calculate the vibrational frequencies 
+and dipole matrix elements for a 1D potential. The potential is fit to a polynomial and the dipole is fit to a polynomial. The vibrational
+frequencies and dipole matrix elements are calculated using the eigenvalues and eigenvectors of the Hamiltonian matrix.
+
+For more information on Discrete Variable Representations, Check out the following paper:
+
+Colber, Miller, A novel discrete variable representation for quantum mechanical
+    reactive scattering via the S-matrix Kohn method, Journal of Chemical Physics,
+    96, pp. 1982-1991 (1992).
+ToDo:
+    Set up for other grid types [if necessary]
+"""
+__all__ = ["DVR"]
 import numpy as np
 from scipy.linalg import eigh
+
+from empmap.constants import ConstantsManagement
 
 
 class DVR:
@@ -11,17 +27,14 @@ class DVR:
     dipole is fit to a polynomial. The vibrational frequencies and dipole matrix elements
     are calculated using the eigenvalues and eigenvectors of the Hamiltonian matrix.
 
-    For more infomration on Discrete Variable Representations, Check out the following paper:
+    For more information on Discrete Variable Representations, Check out the following paper:
 
     Colber, Miller, A novel discrete variable representation for quantum mechanical 
         reactive scattering via the S-matrix Kohn method, Journal of Chemical Physics,
         96, pp. 1982-1991 (1992).
 
-    ToDo:
-        Set up for other grid types [if necessary]
-
-
     Attributes:
+    ----------
         constants (ConstantsManagement): The constants management class
         reduced_mass (float): The reduced mass (g/mol)
         emax (float): The energy cutoff (au)
@@ -50,20 +63,34 @@ class DVR:
     def __init__(self, pot1d, emax=0.7, xmax=1.4, mass1=1.0, mass2=1.0, reduced_mass=None, num_grid_per_broglie=4):
         """ Initialize the DVR class. 
 
-        Note - right now, the DVR class is only implemented for a 1D radial coordinate. At some point, it might be worthwhile
-        to implement the others. 
+        Notes:
+        -----
+        This class is used to calculate the vibrational frequencies and dipole matrix elements
+        for a 1D potential using the DVR method. The potential is fit to a polynomial and the
+        dipole is fit to a polynomial. The vibrational frequencies and dipole matrix elements
+        are calculated using the eigenvalues and eigenvectors of the Hamiltonian matrix.
 
-        Args:
-            pot1d (Potential1D): The 1D potential object
-            emax (float): The energy cutoff (eV) [Default: 0.7] Converted to au in the class
-            xmax (float): The maximum position (angstroms) [Default: 1.4] Converted to au in the class
-            mass1 (float): The mass of the first atom (g/mol) [Default: 1.0] 
-            mass2 (float): The mass of the second atom (g/mol) [Default: 1.0]
-            reduced_mass (float): The reduced mass (g/mol) [Default: None] If None, calculated in the class. Converted to au in the class
-            num_grid_per_broglie (int): The number of grid points per deBroglie wavelength [default=10]
+        Parameters:
+        ----------
+        pot1d : Potential1D
+            The 1D potential object
+        emax : float
+            The energy cutoff (eV) [Default: 0.7] Converted to au in the class
+        xmax : float
+            The maximum position (angstroms) [Default: 1.4] Converted to au in the class
+        mass1 : float
+            The mass of the first atom (g/mol) [Default: 1.0]
+        mass2 : float
+            The mass of the second atom (g/mol) [Default: 1.0]
+        reduced_mass : float
+            The reduced mass (g/mol) [Default: None] If None, calculated in the class. Converted to au in the class
+        num_grid_per_broglie : int
+            The number of grid points per deBroglie wavelength [default=10]
 
         Returns:
-            None
+        -------
+        None
+
         """
         self.constants = ConstantsManagement()
         if reduced_mass is None:
@@ -178,29 +205,45 @@ class DVR:
     def _kinetic_prefactor(self):
         """ Calculate the kinetic energy prefactor 
 
-        Units: 
-            reduced mass (au) and delr (au)
+        Notes:
+        -----
+        This is the prefactor for the kinetic energy in the Hamiltonian. It is a function of the
+        reduced mass and the grid spacing.
 
-        Args:
-            None
+        The units are in atomic units.
+
+        The formula is:
+        ke_pref = 1/(2 * mu * delr^2)
+
+        Parameters:
+        ----------
+        None
 
         Returns:
-            float: The kinetic energy prefactor in au
+        -------
+        float: 
+            The kinetic energy prefactor in au
         """
         return 1.0/(2.0*self.reduced_mass*self.delr**2)
 
     def _setup_grid(self):
-        """ Set up the grid for the DVR
+        """ Set up the grid for the DVR representation
 
-        Assumptions:
-            The grid is evenly spaced
-            Radial Coordinate
+        Notes:
+        -----
+        This method sets up the grid for the DVR representation. It calculates the grid spacing
+        and the refined grid based on the energy cutoff.
 
-        Args:
-            None
+        It sets up the grid spacing and the refined grid based on the energy cutoff V<emax.
+
+        Parameters:
+        ----------
+        None
 
         Returns:
-            None
+        -------
+        None
+
         """
         # Set up the grid spacing
         self.delr = 2.0 * self.constants.PI / \
@@ -229,8 +272,8 @@ class DVR:
         """ 
         Construct the hamiltionian matrix for the DVR
 
-        Note: 
-
+        Notes: 
+        -----
             H[i,i] = V[i] + ke_pref * (pi^2/3 - 0.5/(i+1)^2)
             H[i,j] = (-1.0)^((i+1)-(j+1))*2.0* ke_pref * (1/((i+1)-(j+1))^2 - 1.0/(i+1 + j+1)^2)
 
@@ -240,11 +283,13 @@ class DVR:
             These equations span the ones in Colbert Miller on p. 1989-1990. The complicatedness of 
             these equations in part comes from the fact that python uses 0, rather than 1, indexing.
 
-        Args:
-            None
+        Parameters:
+        ----------
+        None
 
         Returns:
-            None
+        -------
+        None
 
         """
         h = np.zeros((self.ngrid, self.ngrid))
@@ -264,11 +309,23 @@ class DVR:
     def calculate_reduced_mass(m1, m2):
         """ Calculate the reduced mass
 
-        Args:
-            m1 (float): The mass of the first atom (g/mol)
-            m2 (float): The mass of the second atom (g/mol)
+        Notes:
+        -----
+        This method calculates the reduced mass of two particles.
+
+        The formula is:
+
+        mu = m1*m2/(m1+m2)
+
+        Parameters:
+        ----------
+        m1 : float
+            The mass of the first particle (mass units)
+        m2 : float
+            The mass of the second particle (mass units)
 
         Returns:
-            float: The reduced mass (g/mol)
+            float: The reduced mass (mass units)
+
         """
         return m1*m2/(m1+m2)
