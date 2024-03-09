@@ -11,11 +11,11 @@ how to  the project.
 
    This project is under active development.
 
-API
-===
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
 
-.. automodule:: empmap.collate_map
-   :members:
+   api
 
 Indies and Tables
 =================
