@@ -2,7 +2,8 @@ API
 ===
 
 .. autosummary::
-   :recursive:
    :toctree: _autosummary
+   :template: custom-module-template.rst
+   :recursive:
 
    empmap
