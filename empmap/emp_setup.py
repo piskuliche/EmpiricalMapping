@@ -140,10 +140,10 @@ class MapSetup:
 
         Parameters:
         -----------
-        *args: 
+        args: 
             The topology and trajectory files, respectively. These are
             passed directly to the MDAnalysis Universe class.
-        **kwargs:
+        kwargs:
             Any keyword arguments to pass to the MDAnalysis Universe class.
             Please see the MDAnalysis documentation for more information.
 
@@ -252,6 +252,9 @@ class MapSetup:
         Notes:
         ------
 
+        This method grabs the clusters from the frames in the trajectory. It
+        then writes the Gaussian input files for the clusters. It also calculates
+        the static parameters for the clusters and writes them to files.
 
         Parameters:
         -----------

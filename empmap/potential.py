@@ -148,7 +148,7 @@ class Morse:
         E_n = de*(n+0.5)*(2-B*(n+0.5))
 
         Parameters:
-        ----------
+        -----------
         de : float
             The dissociation energy [Energy Unit]
         B : float
