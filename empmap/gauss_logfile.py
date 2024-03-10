@@ -37,8 +37,70 @@ class GaussianLogFile:
 
         """
         self.logname = logname
+        self.energies = None
+        self.dipole = None
+        self.polarizability = None
+        self.num_points = None
+        return
+
+    def description(self):
+        """ Prints a description of the GaussianLogFile class
+
+        Notes:
+        ------
+        This function prints a description of the GaussianLogFile class.
+
+        Parameters:
+        -----------
+        None
+
+        Returns:
+        --------
+        None
+
+        """
+        print("This class is used to read Gaussian log files and extract data from them.")
+        print(
+            "It is used to extract the energies and the dipole moments from the log files.")
+        print("Currently has the following attributes:")
+        print("logname: The name of the log file to read.")
+        print("energies: The energies from the log file.")
+        print("dipole: The dipole moments from the log file.")
+        print("polarizability: The polarizabilities from the log file.")
+        print("num_points: The number of points in the log file.")
+        print("There are %d number of points in the log file." % self.num_points)
+        return
+
+    def grab_for_empirical_mapping(self):
+        """ Grabs everything from the log file needed for empirical mapping.
+
+        Notes:
+        ------
+
+        This function is used to grab everything from the log file that is needed for the DVR. This includes the energies, dipole moments,
+        and the polarizabilities.
+
+        Parameters:
+        -----------
+        None
+
+        Returns:
+        --------
+        None
+
+        Raises:
+        -------
+        ValueError: 
+            If no data is found in the log file.
+
+        """
         self.energies = self.grab_energies()
-        self.dipole = self.grab_dipole()
+        self.dipole = self.grab_tensor_from_gaussian(
+            comparison_choice='dipole')
+        self.polarizability = self.grab_tensor_from_gaussian(
+            comparison_choice='polarizability')
+        self.num_points = len(self.energies)
+        return
 
     def grab_energies(self, expected=None):
         """ Grabs the energies from the log file
@@ -93,7 +155,8 @@ class GaussianLogFile:
             If no dipole moments are found in the log file.
 
         """
-
+        raise DeprecationWarning(
+            "This function is deprecated. Use grab_tensor_from_gaussian instead.")
         dipole = []
         prev_line = ""
         with open(self.logname, 'r') as f:
