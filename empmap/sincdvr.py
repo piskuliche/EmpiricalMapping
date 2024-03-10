@@ -11,7 +11,7 @@ Colber, Miller, A novel discrete variable representation for quantum mechanical
     96, pp. 1982-1991 (1992).
 
 To Do:
------
+------
     1) Set up for other grid types [if necessary]
 """
 __all__ = ["DVR"]
