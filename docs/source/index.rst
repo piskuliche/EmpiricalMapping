@@ -15,7 +15,13 @@ how to  the project.
    :maxdepth: 1
    :caption: Contents:
 
-   api
+   collate_map
+   constants
+   emp_setup
+   gauss_logfile
+   poly_fit
+   potential
+   sincdvr
 
 Indies and Tables
 =================
