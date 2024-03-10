@@ -245,6 +245,7 @@ class GaussianLogFile:
             for line in f:
                 # General way of pulling data from the Gaussian log file
                 if any(comp in line for comp in components) and flag_tensor:
+                    print(line)
                     if "|| (z)" in line:
                         data = line.strip().split()[data_column+1]
                     else:
