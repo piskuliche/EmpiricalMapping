@@ -1,6 +1,6 @@
------------
-Sinc DVR
------------
+--------------
+Sinc DVR Class
+--------------
 
 .. automodule:: empmap.sincdvr
    :members:

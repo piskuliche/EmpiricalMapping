@@ -1,6 +1,6 @@
------------
-Collate Map
------------
+---------------
+Potential Class
+---------------
 
 .. automodule:: empmap.potential
    :members:
