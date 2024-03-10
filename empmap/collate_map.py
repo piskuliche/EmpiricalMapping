@@ -117,7 +117,7 @@ class EmpiricalMap:
             raise ValueError(
                 "The attribute %s is not present in the class" % attribute)
 
-        values_to_fit = getattr(self, attribute)
+        values_to_fit = np.array(getattr(self, attribute))
         popt, pcov = curve_fit(poly, self.Eproj, values_to_fit*scale_factor)
         self._print_fit(popt, attribute)
         self._display_fit(poly, popt, values_to_fit*scale_factor, attribute)
