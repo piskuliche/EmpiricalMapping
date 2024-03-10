@@ -262,8 +262,8 @@ class MapSetup:
             The frames to grab the clusters from. These should be the indices
             of the frames in the trajectory. (e.g. [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         file_prefix : str
-            The file prefix for the Gaussian input files. (The default is "scan_")
-            Thus, this will create files like "scan_0.gjf", "scan_1.gjf", etc.
+            The file prefix for the Gaussian input files. (The default is scan_)
+            Thus, this will create files like scan_0.gjf, scan_1.gjf, etc.
 
         Returns:
         --------
