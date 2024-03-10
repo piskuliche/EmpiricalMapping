@@ -482,7 +482,7 @@ class MapSetup:
         """
         bond_distance, rtmp1, rtmp2, rtmpO = self._calc_rOH_distance(resid, n)
         atypes, coords = [], []
-        f.write("#n %s/%s empiricaldispersion=gd3 Charge\n" %
+        f.write("#n %s/%s empiricaldispersion=gd3 Charge Polar\n" %
                 (functional, basis))
         f.write("\n")
         f.write("Water Scan\n")
