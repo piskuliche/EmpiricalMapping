@@ -246,12 +246,11 @@ class MapSetup:
         self.set_attribute_from_list(attribute, data_list)
         return
 
-    def grab_clusters_from_frames(self, frames, file_prefix="scan_"):
+    def grab_clusters_from_frames(self, frames, file_prefix="map_"):
         """ Grab the clusters from the frames
 
         Notes:
         ------
-
         This method grabs the clusters from the frames in the trajectory. It
         then writes the Gaussian input files for the clusters. It also calculates
         the static parameters for the clusters and writes them to files.
@@ -262,8 +261,8 @@ class MapSetup:
             The frames to grab the clusters from. These should be the indices
             of the frames in the trajectory. (e.g. [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         file_prefix : str
-            The file prefix for the Gaussian input files. (The default is scan_)
-            Thus, this will create files like scan_0.gjf, scan_1.gjf, etc.
+            The file prefix for the Gaussian input files. (The default is map_)
+            Thus, this will create files like map_0.gjf, map_1.gjf, etc.
 
         Returns:
         --------
