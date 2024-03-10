@@ -412,18 +412,19 @@ class Potential1D:
         None
 
         """
-        print("# **************************************************")
-        if (order == 1):
-            print('#  mu0       = %13.8f' % popt[0]+' D')
-            print('#  dmu/dr_r0 = %13.8f' % (np.abs(popt[1]))+' D/Angs')
-        else:
-            print('# mu0        = %13.8f' % popt[0]+' D')
-            print('# dmu/dr_r0  = %13.8f' % (np.abs(dmu))+' D/Angs')
-            print('# dmu/dr_num = %13.8f' % dmu_num+' D/Angs')
-            for j in range(1, order+1):
-                print('#  c'+str(j)+' = %13.8f D/Angs^' %
-                      popt[j]+str(j))
-        print("# **************************************************")
+        if verbose:
+            print("# **************************************************")
+            if (order == 1):
+                print('#  mu0       = %13.8f' % popt[0]+' D')
+                print('#  dmu/dr_r0 = %13.8f' % (np.abs(popt[1]))+' D/Angs')
+            else:
+                print('# mu0        = %13.8f' % popt[0]+' D')
+                print('# dmu/dr_r0  = %13.8f' % (np.abs(dmu))+' D/Angs')
+                print('# dmu/dr_num = %13.8f' % dmu_num+' D/Angs')
+                for j in range(1, order+1):
+                    print('#  c'+str(j)+' = %13.8f D/Angs^' %
+                          popt[j]+str(j))
+            print("# **************************************************")
 
     def _read_data(self, rOH_file, pot_file, dip_file, eOH_file):
         """ Read the data from the files
