@@ -284,7 +284,7 @@ class Potential1D:
 
         return
 
-    def fit_to_morse(self, reduced_mass):
+    def fit_to_morse(self, reduced_mass, verbose=False):
         """ Fit the potential to a Morse potential
 
         Notes:
@@ -304,7 +304,8 @@ class Potential1D:
         morse = Morse()
         morse.fit_parameters(self.rOH, self.pot_energy,
                              reduced_mass)
-        morse.description()
+        if verbose:
+            morse.description()
 
     def _project_mu(self):
         """ Project the dipole moment onto the eOH vector
@@ -373,18 +374,18 @@ class Potential1D:
         """
 
         vf = poly(self.rOH, *popt)
-        print("# **************************************************")
-        print('#  V0 = %13.8f' % popt[0]+' eV')
-        print('#  r0 = %13.8f' % popt[1]+' Angs')
-        print('#  k  = %13.8f' % popt[2]+' eV/Angs^2')
-        for j in range(3, int(order)+1):
-            print('#  c'+str(j)+' = %13.8f eV/Angs^' % popt[j]+str(j))
-        if verbose == True:
-            print('# rOH (Ang) v_actual    v_fit (eV)')
-            for k in range(0, len(self.rOH)):
-                print(
-                    f"{self.rOH[k]:.8f}  {self.pot_energy[k]:.8f}  {vf[k]:.8f}")
-        print("# **************************************************")
+        if verbose:
+            print("# **************************************************")
+            print('#  V0 = %13.8f' % popt[0]+' eV')
+            print('#  r0 = %13.8f' % popt[1]+' Angs')
+            print('#  k  = %13.8f' % popt[2]+' eV/Angs^2')
+            for j in range(3, int(order)+1):
+                print('#  c'+str(j)+' = %13.8f eV/Angs^' % popt[j]+str(j))
+                print('# rOH (Ang) v_actual    v_fit (eV)')
+                for k in range(0, len(self.rOH)):
+                    print(
+                        f"{self.rOH[k]:.8f}  {self.pot_energy[k]:.8f}  {vf[k]:.8f}")
+            print("# **************************************************")
 
     def _display_mu_polyfit(self, order, popt, dmu, dmu_num, verbose=False):
         """ Display the dipole moment polynomial fit
