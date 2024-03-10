@@ -2,5 +2,5 @@
 Poly Fit
 -----------
 
-.. automodule:: empmap.collate_map
+.. automodule:: empmap.poly_fit
    :members:
