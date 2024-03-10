@@ -10,11 +10,12 @@ Colber, Miller, A novel discrete variable representation for quantum mechanical
     reactive scattering via the S-matrix Kohn method, Journal of Chemical Physics,
     96, pp. 1982-1991 (1992).
 
-ToDo:
+To Do:
 -----
-    Set up for other grid types [if necessary]
+    1) Set up for other grid types [if necessary]
 """
 __all__ = ["DVR"]
+
 import numpy as np
 from scipy.linalg import eigh
 

@@ -1,5 +1,4 @@
-""" This module contains the MapSetup class, which is used to set up the
-    calculations for the empirical map.
+""" Sets up the calculations for the empirical map.
 
 Notes:
 ------
@@ -9,30 +8,6 @@ cutoff, outer cutoff, calculation directory, scan dr, ngrid, and rmin.
 
 It then uses this information, along with a trajectory, to grab clusters from the
 frames and write Gaussian input files for the clusters.
-
-Examples:
----------
->>> from empmap.emp_setup import MapSetup
->>> setup = MapSetup()
->>> setup.load_universe("water.gro", "water.xtc")
->>> setup.grab_clusters_from_frames([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
->>> setup.write_gaussian(resid, inner, outer, 0, "scan_")
-
-Warnings will be issued if the universe doesn't include needed information, such as
-charges, masses, or types during initialization. 
-
-These warnings will be raised as errors if clusters are tried to be grabbed from the universe
-before these are added to the universe.
-
-To add charges to the universe, use the set_charges_from_list or set_charges_by_type methods.
-
-Example:
---------
->>> from empmap.emp_setup import MapSetup
->>> setup = MapSetup()
->>> setup.load_universe("water.gro", "water.xtc")
->>> charges = {"O": -0.834, "H": 0.417}
->>> setup.set_charges_by_type(charges)
 
 To Do:
 ------
@@ -61,6 +36,30 @@ class MapSetup:
                  inner_cutoff=4.0, outer_cutoff=8.0,  scan_dr=0.04, ngrid=14, rmin=0.72, nproc=4, mem=20):
         """
         Initialize the MapSetup class
+
+        Examples:
+        ---------
+        >>> from empmap.emp_setup import MapSetup
+        >>> setup = MapSetup()
+        >>> setup.load_universe("water.gro", "water.xtc")
+        >>> setup.grab_clusters_from_frames([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        >>> setup.write_gaussian(resid, inner, outer, 0, "scan_")
+
+        Warnings will be issued if the universe doesn't include needed information, such as
+        charges, masses, or types during initialization. 
+
+        These warnings will be raised as errors if clusters are tried to be grabbed from the universe
+        before these are added to the universe.
+
+        To add charges to the universe, use the set_charges_from_list or set_charges_by_type methods.
+
+        Example:
+        --------
+        >>> from empmap.emp_setup import MapSetup
+        >>> setup = MapSetup()
+        >>> setup.load_universe("water.gro", "water.xtc")
+        >>> charges = {"O": -0.834, "H": 0.417}
+        >>> setup.set_charges_by_type(charges)
 
         Parameters:
         -----------
