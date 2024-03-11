@@ -88,6 +88,7 @@ class EmpiricalMap:
         self.xpsi1 = []
         self.Eproj = []
         self.dmu = []
+        self.dmu_num = []
         return
 
     def create_map_by_fitting(self, order):
@@ -174,6 +175,7 @@ class EmpiricalMap:
             self.mu01.append(np.abs(dvr.mu01))
             self.mu12.append(np.abs(dvr.mu12))
             self.dmu.append(np.abs(dvr.pot1d.mu_fit['dmu/dr_r0']))
+            self.dmu_num.append(np.abs(dvr.pot1d.mu_fit['dmu_num']))
 
     def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3, max_fail=10):
         """ Code to contstruct and obtain eigenvalues and eigenvectors using the DVR approach.
