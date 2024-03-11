@@ -35,18 +35,18 @@ class Morse:
         self.de = None
         self.alpha = None
         self.re = None
-        pass
 
     def __repr__(self):
         """ Return the Morse potential representation"""
-        return "Morse(de={}, alpha={}, re={})".format(self.de, self.alpha, self.re)
+        return f"Morse(de={self.de}, alpha={self.alpha}, re={self.re})"
 
     def description(self):
         """ Print the Morse potential parameters """
-        print("Morse potential with \nde={}, \nalpha={}, \nre={}".format(
-            self.de, self.alpha, self.re))
+        print(
+            f"Morse potential with \nde={self.de}, \nalpha={self.alpha}, \nre={self.re}"
+        )
 
-    def fit_parameters(self, r, E, mu, p0=[100, 10, 1.0]):
+    def fit_parameters(self, r, E, mu, p0=None):
         """ Fit the Morse potential parameters
 
         Notes:
@@ -72,6 +72,8 @@ class Morse:
             The covariance matrix
 
         """
+        if p0 is None:
+            p0 = [100, 10, 1.0]
         E = E - E.min()
         popt, pcov = curve_fit(self.energy, r, E, p0=p0)
         self.de = popt[0]
@@ -380,9 +382,10 @@ class Potential1D:
             print('#  r0 = %13.8f' % popt[1]+' Angs')
             print('#  k  = %13.8f' % popt[2]+' eV/Angs^2')
             for j in range(3, int(order)+1):
-                print('#  c'+str(j)+' = %13.8f eV/Angs^' % popt[j]+str(j))
+                print(f'#  c{str(j)}' + ' = %13.8f eV/Angs^' %
+                      popt[j] + str(j))
                 print('# rOH (Ang) v_actual    v_fit (eV)')
-                for k in range(0, len(self.rOH)):
+                for k in range(len(self.rOH)):
                     print(
                         f"{self.rOH[k]:.8f}  {self.pot_energy[k]:.8f}  {vf[k]:.8f}")
             print("# **************************************************")
@@ -422,8 +425,10 @@ class Potential1D:
                 print('# dmu/dr_r0  = %13.8f' % (np.abs(dmu))+' D/Angs')
                 print('# dmu/dr_num = %13.8f' % dmu_num+' D/Angs')
                 for j in range(1, order+1):
-                    print('#  c'+str(j)+' = %13.8f D/Angs^' %
-                          popt[j]+str(j))
+                    print(
+                        (f'#  c{str(j)}' + ' = %13.8f D/Angs^' %
+                         popt[j]) + str(j)
+                    )
             print("# **************************************************")
 
     def _read_data(self, rOH_file, pot_file, dip_file, eOH_file):
@@ -460,23 +465,23 @@ class Potential1D:
             self.rOH = np.genfromtxt(
                 rOH_file, dtype=float, usecols=(0), unpack=True)
         except:
-            raise ValueError("Error reading rOH file %s" % rOH_file)
+            raise ValueError(f"Error reading rOH file {rOH_file}")
         try:
             self.pot_energy = np.genfromtxt(
                 pot_file, dtype=float, usecols=(0), unpack=True)
             self.pot_energy = self.pot_energy - self.pot_energy.min()
         except:
-            raise ValueError("Error reading potential file %s" % pot_file)
+            raise ValueError(f"Error reading potential file {pot_file}")
         try:
             self.mux, self.muy, self.muz = np.genfromtxt(
                 dip_file, dtype=float, usecols=(0, 1, 2), unpack=True)
         except:
-            raise ValueError("Error reading dipole file %s" % dip_file)
+            raise ValueError(f"Error reading dipole file {dip_file}")
         try:
             self.eOH = np.genfromtxt(
                 eOH_file, dtype=float, usecols=(0), unpack=True)
         except:
-            raise ValueError("Error reading eOH file %s " % eOH_file)
+            raise ValueError(f"Error reading eOH file {eOH_file} ")
         return
 
 
