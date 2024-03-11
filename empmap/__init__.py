@@ -12,7 +12,7 @@ for entry in initfile.parent.iterdir():
     is_not_initpy = (entry != initfile)
     if is_file and is_pyfile and is_not_initpy:
         module_name = entry.name.removesuffix('.py')
-        module_path = __name__ + '.' + module_name
+        module_path = f'{__name__}.{module_name}'
         module = import_module(module_path)
         setattr(package, module_name, module)
         __all__.append(module_name)
