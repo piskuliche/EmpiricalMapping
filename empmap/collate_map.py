@@ -108,7 +108,7 @@ class EmpiricalMap:
     def create_map_by_fitting(self, order):
         raise NotImplemented("This function hasn't been implemented yet.")
 
-    def fit_attribute_of_map(self, attribute, order, scale_factor=1.0):
+    def fit_attribute_of_map(self, attribute, order, scale_factor=1.0, display_plot=False):
         """ Fits an attribute of the map to a polynomial of order order.
 
         Parameters:
@@ -138,7 +138,10 @@ class EmpiricalMap:
         values_to_fit = np.array(getattr(self, attribute))
         popt, pcov = curve_fit(poly, self.Eproj, values_to_fit*scale_factor)
         self._print_fit(popt, attribute)
-        self._display_fit(poly, popt, values_to_fit*scale_factor, attribute)
+        if display_plot:
+            scaled_values = values_to_fit*scale_factor
+            self._display_fit(poly, popt, scaled_values, attribute)
+        return poly, popt, pcov
 
     def _print_fit(self, popt, attribute):
         """ Prints the fit to the screen. """

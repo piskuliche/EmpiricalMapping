@@ -1,0 +1,177 @@
+%NProcShared=1
+%Mem=4GB
+%chk=calc.chk
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39781   11.24754   17.19821
+H   19.43699   10.93411   17.76630
+H   20.22781   11.06754   16.64821
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39747   11.25024   17.19332
+H   19.44268   10.88859   17.84881
+H   20.22747   11.07024   16.64332
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39713   11.25293   17.18843
+H   19.44837   10.84306   17.93132
+H   20.22713   11.07293   16.63843
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39680   11.25563   17.18354
+H   19.45406   10.79754   18.01383
+H   20.22680   11.07563   16.63354
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39646   11.25833   17.17865
+H   19.45975   10.75202   18.09634
+H   20.22646   11.07833   16.62865
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39612   11.26103   17.17376
+H   19.46544   10.70650   18.17884
+H   20.22612   11.08103   16.62376
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39579   11.26373   17.16887
+H   19.47113   10.66098   18.26135
+H   20.22578   11.08373   16.61887
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39545   11.26642   17.16398
+H   19.47682   10.61545   18.34386
+H   20.22545   11.08642   16.61398
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39511   11.26912   17.15909
+H   19.48251   10.56993   18.42637
+H   20.22511   11.08912   16.60909
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39477   11.27182   17.15420
+H   19.48820   10.52441   18.50888
+H   20.22477   11.09182   16.60420
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39444   11.27452   17.14931
+H   19.49389   10.47889   18.59139
+H   20.22444   11.09452   16.59931
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39410   11.27722   17.14442
+H   19.49958   10.43337   18.67389
+H   20.22410   11.09722   16.59442
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39376   11.27991   17.13953
+H   19.50527   10.38785   18.75640
+H   20.22376   11.09991   16.58953
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39342   11.28261   17.13464
+H   19.51096   10.34232   18.83891
+H   20.22342   11.10261   16.58464
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39309   11.28531   17.12975
+H   19.51665   10.29680   18.92142
+H   20.22309   11.10531   16.57975
+
+--Link1--
+
+#n b3lyp/6-311G(d,p) empiricaldispersion=gd3 Charge Polar
+
+Water Scan
+
+0 1
+O   19.39275   11.28801   17.12486
+H   19.52234   10.25128   19.00393
+H   20.22275   11.10801   16.57486
+
