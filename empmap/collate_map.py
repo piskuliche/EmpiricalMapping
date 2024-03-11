@@ -81,6 +81,8 @@ class EmpiricalMap:
         self.w12 = []
         self.x01 = []
         self.x12 = []
+        self.mu01 = []
+        self.mu12 = []
         self.psi = []
         self.mupsi1 = []
         self.xpsi1 = []
@@ -90,7 +92,7 @@ class EmpiricalMap:
     def create_map_by_fitting(self, order):
         raise NotImplemented("This function hasn't been implemented yet.")
 
-    def fit_attribute_of_map(self, attribute, order, scale_factor=0.9973):
+    def fit_attribute_of_map(self, attribute, order, scale_factor=1.0):
         """ Fits an attribute of the map to a polynomial of order order.
 
         Parameters:
