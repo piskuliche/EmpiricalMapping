@@ -225,6 +225,8 @@ class GaussianLogFile:
             If the comparison choice is not recognized.
 
         """
+        comparison_line = ""
+        components = []
         if comparison_choice == "dipole":
             comparison_line = "Electric dipole moment (input orientation)"
             components = ["x", "y", "z"]
@@ -244,9 +246,7 @@ class GaussianLogFile:
         with open(self.logname, 'r') as f:
             for line in f:
                 # General way of pulling data from the Gaussian log file
-                if any(comp in line for comp in components) and flag_tensor:
-                    print(line)
-                    print(any(comp in line for comp in components))
+                if (any(comp in line for comp in components) and flag_tensor) and not (any(skip in line for skip in ["Debye", "parallel", "vector", "esu"])):
                     if "|| (z)" in line:
                         data = line.strip().split()[data_column+1]
                     else:
