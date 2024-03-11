@@ -109,6 +109,43 @@ class EmpiricalMap:
     def create_map_by_fitting(self, order):
         raise NotImplemented("This function hasn't been implemented yet.")
 
+    @staticmethod
+    def r2_score(y_actual, poly, popt):
+        """ Calculate the R^2 score. 
+
+        Notes:
+        ------
+
+        The R^2 score is a measure of how well the data fits the polynomial. It is calculated as:
+
+        R^2 = 1 - (SS_res/SS_tot)
+
+        Where SS_res is the sum of the squares of the residuals and SS_tot is the sum of the squares of the total data.
+
+        It should be noted that for high-order polynomials, the R^2 score can be artificially high. This is because the polynomial
+        can be made to fit the data very well, but it may not be a good representation of the data. This is known as overfitting.
+
+
+        Parameters:
+        -----------
+        y_actual : array_like
+            The actual values of the data.
+        poly : function
+            The polynomial function.
+        popt : array_like
+            The polynomial coefficients.
+
+        Returns:
+        --------
+        r2_score : float
+            The R^2 score.
+
+        """
+        residuals = y_actual - poly(y_actual, *popt)
+        ss_res = np.sum(residuals**2)
+        ss_tot = np.sum((y_actual - np.mean(y_actual))**2)
+        return 1 - (ss_res/ss_tot)
+
     def fit_full_empirical_map(self, order_omega=2, order_x=1):
         """ Fits the full empirical map.
 
@@ -127,24 +164,29 @@ class EmpiricalMap:
         self.map_fit_parameters = {}
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "Eproj", "w01", order_omega)
-        self.map_fit_parameters['w01'] = (popt, pcov)
+        r2_score = self.r2_score(self.w01, poly, popt)
+        self.map_fit_parameters['w01'] = (popt, pcov, r2_score)
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "Eproj", "w12", order_omega)
-        self.map_fit_parameters['w12'] = (popt, pcov)
+        r2_score = self.r2_score(self.w12, poly, popt)
+        self.map_fit_parameters['w12'] = (popt, pcov, r2_score)
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "w01", "x01", order_x)
-        self.map_fit_parameters['x01'] = (popt, pcov)
+        r2_score = self.r2_score(self.x01, poly, popt)
+        self.map_fit_parameters['x01'] = (popt, pcov, r2_score)
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "w12", "x12", order_x)
         self.map_fit_parameters['x12'] = (popt, pcov)
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "Eproj", "dmu_num", order_omega, sigma_pos=[-1])
-        self.map_fit_parameters['dmu_num'] = (popt, pcov)
+        r2_score = self.r2_score(self.dmu_num, poly, popt)
+        self.map_fit_parameters['dmu_num'] = (popt, pcov, r2_score)
         data1 = self.Eproj
         data2 = np.divide(self.dmu_num, self.dmu_num[-1])
         poly, popt, pcov = self.fit_data_vs_data(
             data1, data2, order_omega, label1='E', label2='dmu_num')
-        self.map_fit_parameters['dmu_num_scaled'] = (popt, pcov)
+        r2_score = self.r2_score(data2, poly, popt)
+        self.map_fit_parameters['dmu_num_scaled'] = (popt, pcov, r2_score)
 
         return
 
