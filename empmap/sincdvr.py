@@ -128,7 +128,7 @@ class DVR:
         print("Maximum Position: %10.5f au" % self.xmax)
         print("Number of grid points per deBroglie wavelength: %d" %
               self.num_grid_per_broglie)
-        print("Solved? %s" % hasattr(self, 'evals'))
+        print(f"Solved? {hasattr(self, 'evals')}")
 
         print("w01: ", self.w01)
         print("w12: ", self.w12)
@@ -151,16 +151,9 @@ class DVR:
 
         mu_grid = muraw[self._mask_grid]
 
-        psi0 = self.evecs[:, 0]
-        norm0 = np.dot(psi0, psi0)
-        psi0 /= np.sqrt(norm0)
-        psi1 = self.evecs[:, 1]
-        norm1 = np.dot(psi1, psi1)
-        psi1 /= np.sqrt(norm1)
-        psi2 = self.evecs[:, 2]
-        norm2 = np.dot(psi2, psi2)
-        psi2 /= np.sqrt(norm2)
-
+        psi0 = self._calculate_wavefunction_from_eigenvector(0)
+        psi1 = self._calculate_wavefunction_from_eigenvector(1)
+        psi2 = self._calculate_wavefunction_from_eigenvector(2)
         mupsi1 = np.multiply(mu_grid, psi1)
         xpsi1 = np.multiply(self.xgrid, psi1)
 
@@ -175,6 +168,12 @@ class DVR:
         self.xpsi1 = xpsi1
 
         return
+
+    def _calculate_wavefunction_from_eigenvector(self, arg0):
+        result = self.evecs[:, arg0]
+        norm0 = np.dot(result, result)
+        result /= np.sqrt(norm0)
+        return result
 
     def _set_frequencies(self):
         """ Set the vibrational frequencies
