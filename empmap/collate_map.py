@@ -14,6 +14,8 @@ To Do:
 
 """
 
+import pickle
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
@@ -90,6 +92,18 @@ class EmpiricalMap:
         self.dmu = []
         self.dmu_num = []
         return
+
+    def save_self(self, filename):
+        """ Save the EmpiricalMap to a file. """
+        with open(filename, 'wb') as f:
+            pickle.dump(self, f)
+        return
+
+    @classmethod
+    def load_self(self, filename):
+        """ Load the EmpiricalMap from a file. """
+        with open(filename, 'rb') as f:
+            return pickle.load(f)
 
     def create_map_by_fitting(self, order):
         raise NotImplemented("This function hasn't been implemented yet.")
