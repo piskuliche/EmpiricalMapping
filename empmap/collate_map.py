@@ -141,6 +141,7 @@ class EmpiricalMap:
             The R^2 score.
 
         """
+        y_actual = np.array(y_actual)
         residuals = y_actual - poly(y_actual, *popt)
         ss_res = np.sum(residuals**2)
         ss_tot = np.sum((y_actual - np.mean(y_actual))**2)
