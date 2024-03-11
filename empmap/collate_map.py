@@ -143,13 +143,36 @@ class EmpiricalMap:
             self._display_fit(poly, popt, scaled_values, attribute)
         return poly, popt, pcov
 
-    def _print_fit(self, popt, attribute):
+    def fit_attribute_vs_attribute(self, attribute1, attribute2, order, scale_factor1=1.0, scale_factor2=1.0, sigma_pos=None):
+        poly = mu_fit_selector(order)
+
+        if getattr(self, attribute1) is None:
+            raise ValueError(
+                f"The attribute {attribute1} is not present in the class")
+        if getattr(self, attribute2) is None:
+            raise ValueError(
+                f"The attribute {attribute2} is not present in the class")
+
+        values_to_fit1 = np.array(getattr(self, attribute1))*scale_factor1
+        values_to_fit2 = np.array(getattr(self, attribute2))*scale_factor2
+        if sigma_pos is not None:
+            sigma = np.ones(len(values_to_fit1))
+            sigma[sigma_pos] = 0.01
+            popt, pcov = curve_fit(poly, values_to_fit1, values_to_fit2,
+                                   sigma=sigma)
+        else:
+            popt, pcov = curve_fit(poly, values_to_fit1, values_to_fit2)
+        self._print_fit(popt, attribute2, label=attribute1)
+        return poly, popt, pcov
+
+    def _print_fit(self, popt, attribute, label='E'):
         """ Prints the fit to the screen. """
         if len(popt) == 2:
-            print("%s = %10.4f + %10.4f*E" % (attribute, popt[0], popt[1]))
+            print("%s = %10.4f + %10.4f*%s" %
+                  (attribute, popt[0], popt[1], label))
         elif len(popt) == 3:
-            print("%s = %10.4f + %10.4f*E + %10.4f*E^2" % (attribute,
-                  popt[0], popt[1], popt[2]))
+            print("%s = %10.4f + %10.4f*%s + %10.4f*%s^2" % (attribute,
+                  popt[0], popt[1], popt[2], label))
         return
 
     def _display_fit(self, poly, popt, values, attribute):
