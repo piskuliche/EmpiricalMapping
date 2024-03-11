@@ -127,24 +127,24 @@ class EmpiricalMap:
         self.map_fit_parameters = {}
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "Eproj", "w01", order_omega)
-        self.map_fit_parameters['w01'] = (poly, popt, pcov)
+        self.map_fit_parameters['w01'] = (popt, pcov)
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "Eproj", "w12", order_omega)
-        self.map_fit_parameters['w12'] = (poly, popt, pcov)
+        self.map_fit_parameters['w12'] = (popt, pcov)
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "w01", "x01", order_x)
-        self.map_fit_parameters['x01'] = (poly, popt, pcov)
+        self.map_fit_parameters['x01'] = (popt, pcov)
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "w12", "x12", order_x)
-        self.map_fit_parameters['x12'] = (poly, popt, pcov)
+        self.map_fit_parameters['x12'] = (popt, pcov)
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "Eproj", "dmu_num", order_omega, sigma_pos=[-1])
-        self.map_fit_parameters['dmu_num'] = (poly, popt, pcov)
+        self.map_fit_parameters['dmu_num'] = (popt, pcov)
         data1 = self.Eproj
         data2 = np.divide(self.dmu_num, self.dmu_num[-1])
         poly, popt, pcov = self.fit_data_vs_data(
             data1, data2, order_omega, label1='E', label2='dmu_num')
-        self.map_fit_parameters['dmu_num_scaled'] = (poly, popt, pcov)
+        self.map_fit_parameters['dmu_num_scaled'] = (popt, pcov)
 
         return
 
