@@ -140,6 +140,8 @@ class GaussianLogFile:
     def grab_dipole(self):
         """ Grabs the dipole moments from the log file
 
+        This function is deprecated. Use grab_tensor_from_gaussian instead.
+
         Parameters:
         -----------
         None
