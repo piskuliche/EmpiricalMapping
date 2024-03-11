@@ -251,7 +251,7 @@ class GaussianLogFile:
                         data = line.strip().split()[data_column+1]
                     else:
                         data = line.strip().split()[data_column]
-                    comp = float(data)
+                    comp = np.float(data)
                     new_tensor.append(comp)
                     if len(new_tensor) == len(components):
                         flag_tensor = False
