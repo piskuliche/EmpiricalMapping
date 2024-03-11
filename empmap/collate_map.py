@@ -15,6 +15,7 @@ To Do:
 """
 
 import pickle
+import os
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -248,33 +249,52 @@ class EmpiricalMap:
         fail_count = 0
         for file in self.file_list:
             try:
-                full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
-                # Construct the potential object.
-                pot1d = Potential1D(
-                    f"{full_prefix}rOHs.dat",
-                    f"{full_prefix}energies.dat",
-                    f"{full_prefix}dipoles.dat",
-                    f"{full_prefix}eOHs.dat",
-                )
-                pot1d.fit_potential_to_poly(pot_poly_order)
-                pot1d.fit_dipole_to_poly(dip_poly_order)
-                # Construct the DVR
-                dvr = DVR(pot1d, emax=emax, xmax=xmax,
-                          mass1=mass1, mass2=mass2)
-                # Do the DVR Calcualtion
-                dvr.do_calculation()
+                dvr = self.obtain_dvr(file, emax=emax, xmax=xmax, mass1=mass1, mass2=mass2,
+                                      pot_poly_order=pot_poly_order, dip_poly_order=dip_poly_order)
                 # Store the Data
                 all_dvrs.append(dvr)
                 dvr_read_successful.append(True)
-            except:
+            except Exception:
                 print("Failed to load DVR for file %d" % file)
                 dvr_read_successful.append(False)
                 fail_count += 1
                 if fail_count > max_fail:
                     raise
+        if os.path.exists(f"{self.calc_dir}gas/"):
+            try:
+                dvr = self.obtain_dvr("gas", emax=emax, xmax=xmax, mass1=mass1, mass2=mass2,
+                                      pot_poly_order=pot_poly_order, dip_poly_order=dip_poly_order)
+                # Store the Data
+                all_dvrs.append(dvr)
+                dvr_read_successful.append(True)
+            except Exception:
+                print("Failed to load DVR for file gas")
+                dvr_read_successful.append(False)
+                fail_count += 1
+                if fail_count > max_fail:
+                    raise RuntimeError(
+                        "Too many failed DVR calculations. Please increase max_fail, or check the calculations.")
 
         dvr_read_successful = np.array(dvr_read_successful)
         return all_dvrs, dvr_read_successful
+
+    def obtain_dvr(self, file,  emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3):
+        """ Obtain a DVR for a given file. """
+        full_prefix = f"{self.calc_dir}{file}/{self.file_prefix}"
+        # Construct the potential object.
+        pot1d = Potential1D(
+            f"{full_prefix}rOHs.dat",
+            f"{full_prefix}energies.dat",
+            f"{full_prefix}dipoles.dat",
+            f"{full_prefix}eOHs.dat",
+        )
+        pot1d.fit_potential_to_poly(pot_poly_order)
+        pot1d.fit_dipole_to_poly(dip_poly_order)
+        # Construct the DVR
+        dvr = DVR(pot1d, emax=emax, xmax=xmax, mass1=mass1, mass2=mass2)
+        # Do the DVR Calcualtion
+        dvr.do_calculation()
+        return dvr
 
     def _obtain_eproj(self):
         """ Reads the projected electric fields from the file based on the file_prefix"""
