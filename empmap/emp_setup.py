@@ -127,7 +127,7 @@ class MapSetup:
         """ Print the description of the MapSetup class
 
         """
-        print("Selection: %s" % self.selection)
+        print(f"Selection: {self.selection}")
         print("Inner cutoff: %10.5f" % self.inner_cutoff)
         print("Outer cutoff: %10.5f" % self.outer_cutoff)
         return
@@ -157,7 +157,7 @@ class MapSetup:
             If the universe cannot be loaded.
 
         """
-        if len(args) == 0:
+        if not args:
             raise ValueError("Please provide something to build the universe.")
 
         try:
@@ -238,10 +238,7 @@ class MapSetup:
         except:
             raise ValueError("No types found in the universe.")
 
-        # Build the data list
-        data_list = []
-        for type in self.universe.atoms.types:
-            data_list.append(input_dict[type])
+        data_list = [input_dict[type] for type in self.universe.atoms.types]
         # Set the attribute
         self.set_attribute_from_list(attribute, data_list)
         return
@@ -344,7 +341,7 @@ class MapSetup:
         if isinstance(frame_number, int):
             calc_subdir = self.calc_dir + "%d/" % frame_number
         else:
-            calc_subdir = self.calc_dir + "%s/" % frame_number
+            calc_subdir = f"{self.calc_dir}{frame_number}/"
 
         # Calculate the Static Parameters
         # calculate the bond vector
@@ -407,36 +404,33 @@ class MapSetup:
         if isinstance(frame_number, int):
             calc_subdir = self.calc_dir + "%d/" % frame_number
         else:
-            calc_subdir = self.calc_dir + "%s/" % frame_number
+            calc_subdir = f"{self.calc_dir}{frame_number}/"
         if not os.path.exists(calc_subdir):
             os.makedirs(calc_subdir)
 
-        # Open the gaussian
-        finp = open(calc_subdir+file_prefix+"%s.gjf" % frame_number, "w")
-        fxyz = open(calc_subdir+file_prefix+"%s.xyz" % frame_number, "w")
-        # Write the header of the gaussian file
-        finp.write("%"+"NProcShared=%d\n" % self.nproc)
-        finp.write("%"+"Mem=%dGB\n" % self.mem)
-        finp.write("%chk=calc.chk\n")
+        with open(calc_subdir+file_prefix + f"{frame_number}.gjf", "w") as finp:
+            fxyz = open(calc_subdir+file_prefix + f"{frame_number}.xyz", "w")
+            # Write the header of the gaussian file
+            finp.write("%"+"NProcShared=%d\n" % self.nproc)
+            finp.write("%"+"Mem=%dGB\n" % self.mem)
+            finp.write("%chk=calc.chk\n")
 
-        vib_bond_distances = np.zeros(self.ngrid)
+            vib_bond_distances = np.zeros(self.ngrid)
 
-        # Loop over the gridpoints
-        for n in range(self.ngrid):
-            # Add the link block if n>0
-            if n > 0:
-                finp.write("--Link1--\n")
-                finp.write("\n")
-            # Write the gridpoint to the file
-            vib_bond_distance, atypes, coords = self._write_gridpoint(
-                finp, n, resid, inner, outer,
-                functional=functional, basis=basis)
-            self._write_xyz_traj(fxyz, atypes, coords)
-            # Store the distance from the gridpoint
-            vib_bond_distances[n] = vib_bond_distance
+            # Loop over the gridpoints
+            for n in range(self.ngrid):
+                # Add the link block if n>0
+                if n > 0:
+                    finp.write("--Link1--\n")
+                    finp.write("\n")
+                # Write the gridpoint to the file
+                vib_bond_distance, atypes, coords = self._write_gridpoint(
+                    finp, n, resid, inner, outer,
+                    functional=functional, basis=basis)
+                self._write_xyz_traj(fxyz, atypes, coords)
+                # Store the distance from the gridpoint
+                vib_bond_distances[n] = vib_bond_distance
 
-        # Close the files
-        finp.close()
         fxyz.close()
 
         return vib_bond_distances
@@ -504,13 +498,8 @@ class MapSetup:
         f.write("O %10.5f %10.5f %10.5f\n" % (rtmpO[0], rtmpO[1], rtmpO[2]))
         f.write("H %10.5f %10.5f %10.5f\n" % (rtmp1[0], rtmp1[1], rtmp1[2]))
         f.write("H %10.5f %10.5f %10.5f\n" % (rtmp2[0], rtmp2[1], rtmp2[2]))
-        coords.append(rtmpO)
-        coords.append(rtmp1)
-        coords.append(rtmp2)
-        atypes.append("O")
-        atypes.append("H")
-        atypes.append("H")
-
+        coords.extend((rtmpO, rtmp1, rtmp2))
+        atypes.extend(("O", "H", "H"))
         if inner is not None:
             for i, pos in enumerate(inner.positions):
                 f.write("%s %10.5f %10.5f %10.5f\n" %
@@ -709,7 +698,7 @@ class MapSetup:
             random_resid = np.random.choice(self.universe.residues.resids)
 
         resid_sel = "resid %d" % random_resid
-        resid = self.universe.select_atoms("%s" % resid_sel)
+        resid = self.universe.select_atoms(f"{resid_sel}")
         resid_central_index = resid[self.central_atom].index
 
         # Select the Inner and Outer Clusters
@@ -720,8 +709,8 @@ class MapSetup:
 
         # Do the Selections
 
-        inner = self.universe.select_atoms("%s" % inner_sel)
-        all_outer = self.universe.select_atoms("%s" % outer_sel)
+        inner = self.universe.select_atoms(f"{inner_sel}")
+        all_outer = self.universe.select_atoms(f"{outer_sel}")
         outer = all_outer.subtract(inner)
         inner = inner.subtract(resid)
 
