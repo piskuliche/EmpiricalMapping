@@ -164,6 +164,8 @@ class EmpiricalMap:
         None
 
         """
+        constants = ConstantsManagement()
+
         w01_scale = self.w01[-1]/experimental_w01
         self.map_fit_parameters = {}
         # Fit the first fundamenetal frequency, w01
@@ -182,16 +184,16 @@ class EmpiricalMap:
 
         # Fit the first positon matrix element, x01
         poly, popt, pcov = self.fit_attribute_vs_attribute(
-            "w01", "x01", order_x, scale_factor1=w01_scale)
+            "w01", "x01", order_x, scale_factor1=w01_scale, scale_factor2=constants.angperau)
         r2_score = self.r2_score(
-            self.w01, self.x01, poly, popt, scale_x=w01_scale)
+            self.w01, self.x01, poly, popt, scale_x=w01_scale, scale_y=constants.angperau)
         self.map_fit_parameters['x01'] = (popt, pcov, r2_score)
 
         # Fit the second positon matrix element, x12
         poly, popt, pcov = self.fit_attribute_vs_attribute(
-            "w12", "x12", order_x, scale_factor1=w01_scale)
+            "w12", "x12", order_x, scale_factor1=w01_scale, scale_factor2=constants.angperau)
         r2_score = self.r2_score(
-            self.w12, self.x12, poly, popt, scale_x=w01_scale)
+            self.w12, self.x12, poly, popt, scale_x=w01_scale, scale_y=constants.angperau)
         self.map_fit_parameters['x12'] = (popt, pcov, r2_score)
 
         # Fit the first dipole matrix derivative, mu'
@@ -199,6 +201,12 @@ class EmpiricalMap:
             "Eproj", "dmu_num", order_mu, sigma_pos=sigma_pos)
         r2_score = self.r2_score(self.Eproj, self.dmu_num, poly, popt)
         self.map_fit_parameters['dmu_num'] = (popt, pcov, r2_score)
+
+        # Fit the first dipole matrix derivative, mu'
+        poly, popt, pcov = self.fit_attribute_vs_attribute(
+            "Eproj", "dmu", order_mu, sigma_pos=None)
+        r2_score = self.r2_score(self.Eproj, self.dmu, poly, popt)
+        self.map_fit_parameters['dmu'] = (popt, pcov, r2_score)
 
         # Fit the first dipole matrix derivative, mu'
         data1 = self.Eproj
@@ -321,18 +329,20 @@ class EmpiricalMap:
 
     def _build_from_dvr(self, dvrs):
         """ This function builds the data arrays using the DVR approach """
+
+        attributes = ['w01', 'w12', 'psi', 'mupsi1',
+                      'xpsi1', 'x01', 'x12', 'mu01', 'mu12']
         for dvr in dvrs:
-            self.w01.append(dvr.w01)
-            self.w12.append(dvr.w12)
-            self.psi.append(dvr.psi)
-            self.mupsi1.append(dvr.mupsi1)
-            self.xpsi1.append(dvr.xpsi1)
-            self.x01.append(np.abs(dvr.x01))
-            self.x12.append(np.abs(dvr.x12))
-            self.mu01.append(np.abs(dvr.mu01))
-            self.mu12.append(np.abs(dvr.mu12))
+            for attribute in attributes:
+                if not hasattr(self, attribute):
+                    setattr(self, attribute, [])
+                getattr(self, attribute).append(
+                    np.abs(getattr(dvr, attribute)))
             self.dmu.append(np.abs(dvr.pot1d.mu_fit['dmu/dr_r0']))
             self.dmu_num.append(np.abs(dvr.pot1d.mu_fit['dmu_num']))
+        attributes.extend(['dmu', 'dmu_num'])
+        for attribute in attributes:
+            setattr(self, attribute, np.array(getattr(self, attribute)))
 
     def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3, max_fail=10):
         """ Code to contstruct and obtain eigenvalues and eigenvectors using the DVR approach.
