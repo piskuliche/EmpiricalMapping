@@ -71,7 +71,7 @@ class GaussianLogFile:
         print("There are %d number of points in the log file." % self.num_points)
         return
 
-    def grab_for_empirical_mapping(self):
+    def grab_for_empirical_mapping(self, data_column=2):
         """ Grabs everything from the log file needed for empirical mapping.
 
         Notes:
@@ -96,9 +96,9 @@ class GaussianLogFile:
         """
         self.energies = self.grab_energies()
         self.dipole = self.grab_tensor_from_gaussian(
-            comparison_choice='dipole')
+            comparison_choice='dipole', data_column=data_column)
         self.polarizability = self.grab_tensor_from_gaussian(
-            comparison_choice='polarizability')
+            comparison_choice='polarizability', data_column=data_column)
         self.num_points = len(self.energies)
         return
 
