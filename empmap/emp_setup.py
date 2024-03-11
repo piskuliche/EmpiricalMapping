@@ -12,12 +12,12 @@ frames and write Gaussian input files for the clusters.
 To Do:
 ------
 1) Make Masses + Total Mass Read In + charges
-2) Add Selections for Bond to be scanned
-3) Refactor _field_on_atom_from_cluster to use MDAnalysis charges.
-4) Refactor calc_eOH to use explicit "safer" selection
-5) Allow for the user to specify the level of theory for Gaussian
-6) Add other QM programs that you can call - ase?
-7) Generalize rOH distance calcualtor to all bonds.
+2) Refactor _field_on_atom_from_cluster to use MDAnalysis charges.
+3) Refactor calc_eOH to use explicit "safer" selection
+4) Allow for the user to specify the level of theory for Gaussian
+5) Add other QM programs that you can call - ase?
+6) Generalize rOH distance calcualtor to all bonds.
+7) Add a gas phase calculation to the rest.
 
 """
 __all__ = ["MapSetup"]
@@ -291,6 +291,13 @@ class MapSetup:
             self.write_output_data(
                 res, inner, outer, ts.frame, file_prefix, vib_bond_distances)
 
+        # Write a gas phase calculation
+        vib_bond_distances = self.write_gaussian(
+            res, None, None, "gas", file_prefix)
+
+        self.write_output_data(
+            res, None, None, "gas", file_prefix, vib_bond_distances)
+
         return
 
     def write_output_data(self, resid, inner, outer, frame_number, file_prefix, vib_bond_distances):
@@ -334,7 +341,10 @@ class MapSetup:
 
         """
 
-        calc_subdir = self.calc_dir + "%d/" % frame_number
+        if isinstance(frame_number, int):
+            calc_subdir = self.calc_dir + "%d/" % frame_number
+        else:
+            calc_subdir = self.calc_dir + "%s/" % frame_number
 
         # Calculate the Static Parameters
         # calculate the bond vector
@@ -394,7 +404,10 @@ class MapSetup:
             The bond distance values for the scan.
 
         """
-        calc_subdir = self.calc_dir + "%d/" % frame_number
+        if isinstance(frame_number, int):
+            calc_subdir = self.calc_dir + "%d/" % frame_number
+        else:
+            calc_subdir = self.calc_dir + "%s/" % frame_number
         if not os.path.exists(calc_subdir):
             os.makedirs(calc_subdir)
 
@@ -498,18 +511,20 @@ class MapSetup:
         atypes.append("H")
         atypes.append("H")
 
-        for i, pos in enumerate(inner.positions):
-            f.write("%s %10.5f %10.5f %10.5f\n" %
-                    (inner.atoms.types[i], pos[0], pos[1], pos[2]))
-            coords.append(pos)
-            atypes.append(inner.atoms.types[i])
-        f.write("\n")
+        if inner is not None:
+            for i, pos in enumerate(inner.positions):
+                f.write("%s %10.5f %10.5f %10.5f\n" %
+                        (inner.atoms.types[i], pos[0], pos[1], pos[2]))
+                coords.append(pos)
+                atypes.append(inner.atoms.types[i])
+            f.write("\n")
 
-        for i, pos in enumerate(outer.positions):
-            f.write("%10.5f %10.5f %10.5f %10.5f\n" %
-                    (pos[0], pos[1], pos[2], outer.atoms.charges[i]))
-            coords.append(pos)
-            atypes.append(outer.atoms.types[i])
+        if outer is not None:
+            for i, pos in enumerate(outer.positions):
+                f.write("%10.5f %10.5f %10.5f %10.5f\n" %
+                        (pos[0], pos[1], pos[2], outer.atoms.charges[i]))
+                coords.append(pos)
+                atypes.append(outer.atoms.types[i])
         f.write("\n")
         return bond_distance, atypes, coords
 
@@ -645,14 +660,15 @@ class MapSetup:
             The field on the residue from the cluster
 
         """
-        cluster = inner.concatenate(outer)
 
         field = np.zeros(3)
 
-        for atom in cluster:
-            dr = resid[self.bond_atoms[1]].position - atom.position
-            dist = np.sqrt(np.sum(dr**2.))
-            field += atom.charge*dr/dist**3.
+        if inner is not None:
+            cluster = inner.concatenate(outer)
+            for atom in cluster:
+                dr = resid[self.bond_atoms[1]].position - atom.position
+                dist = np.sqrt(np.sum(dr**2.))
+                field += atom.charge*dr/dist**3.
 
         return field
 
