@@ -356,4 +356,7 @@ class EmpiricalMap:
         for file in self.file_list:
             full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
             eproj.append(np.loadtxt(f"{full_prefix}proj_field.dat"))
+        if os.path.exists(f"{self.calc_dir}gas/"):
+            eproj.append(np.loadtxt(
+                f"{self.calc_dir}gas/{self.file_prefix}proj_field.dat"))
         return np.array(eproj)
