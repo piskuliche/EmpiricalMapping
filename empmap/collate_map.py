@@ -227,7 +227,7 @@ class EmpiricalMap:
                   (attribute, popt[0], popt[1], label))
         elif len(popt) == 3:
             print("%s = %10.4f + %10.4f*%s + %10.4f*%s^2" % (attribute,
-                  popt[0], popt[1], popt[2], label))
+                  popt[0], popt[1], label, popt[2], label))
         return
 
     def _display_fit(self, poly, popt, values, attribute):
