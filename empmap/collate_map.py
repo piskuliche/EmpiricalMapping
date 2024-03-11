@@ -149,7 +149,7 @@ class EmpiricalMap:
         ss_tot = np.sum((y_actual - np.mean(y_actual))**2)
         return 1 - (ss_res/ss_tot)
 
-    def fit_full_empirical_map(self, order_omega=2, order_x=1, sigma_pos=None):
+    def fit_full_empirical_map(self, order_omega=2, order_x=1, order_mu=1, sigma_pos=None):
         """ Fits the full empirical map.
 
         Parameters:
@@ -187,14 +187,14 @@ class EmpiricalMap:
         self.map_fit_parameters['x12'] = (popt, pcov, r2_score)
 
         poly, popt, pcov = self.fit_attribute_vs_attribute(
-            "Eproj", "dmu_num", order_omega, sigma_pos=[-1])
+            "Eproj", "dmu_num", order_mu, sigma_pos=[-1])
         r2_score = self.r2_score(self.Eproj, self.dmu_num, poly, popt)
         self.map_fit_parameters['dmu_num'] = (popt, pcov, r2_score)
 
         data1 = self.Eproj
         data2 = np.divide(self.dmu_num, self.dmu_num[-1])
         poly, popt, pcov = self.fit_data_vs_data(
-            data1, data2, order_omega, label1='E', label2='dmu_num')
+            data1, data2, order_mu, label1='E', label2='dmu_num')
         r2_score = self.r2_score(data1, data2, poly, popt)
         self.map_fit_parameters['dmu_num_scaled'] = (popt, pcov, r2_score)
 
