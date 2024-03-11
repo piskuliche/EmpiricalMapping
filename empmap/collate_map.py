@@ -109,6 +109,38 @@ class EmpiricalMap:
     def create_map_by_fitting(self, order):
         raise NotImplemented("This function hasn't been implemented yet.")
 
+    def fit_full_empirical_map(self, order_omega=2, order_x=1):
+        """ Fits the full empirical map.
+
+        Parameters:
+        -----------
+        order_omega : int
+            The order of the polynomial to fit the w01 and w12 parameters.
+        order_x : int
+            The order of the polynomial to fit the x01 and x12 parameters.
+
+        Returns:
+        --------
+        None
+
+        """
+        self.map_fit_parameters = {}
+        poly, popt, pcov = self.fit_attribute_vs_attribute(
+            "Eproj", "w01", order_omega)
+        self.map_fit_parameters['w01'] = (poly, popt, pcov)
+        poly, popt, pcov = self.fit_attribute_vs_attribute(
+            "Eproj", "w12", order_omega)
+        self.map_fit_parameters['w12'] = (poly, popt, pcov)
+        poly, popt, pcov = self.fit_attribute_vs_attribute(
+            "w01", "x01", order_x)
+        self.map_fit_parameters['x01'] = (poly, popt, pcov)
+        poly, popt, pcov = self.fit_attribute_vs_attribute(
+            "w12", "x12", order_x)
+        self.map_fit_parameters['x12'] = (poly, popt, pcov)
+        poly, popt, pcov = self.fit_attribute_vs_attribute(
+            "Eproj", "dmu_num", order_omega, sigma_pos=[-1])
+        return
+
     def fit_attribute_of_map(self, attribute, order, scale_factor=1.0, display_plot=False):
         """ Fits an attribute of the map to a polynomial of order order.
 
@@ -164,6 +196,21 @@ class EmpiricalMap:
         else:
             popt, pcov = curve_fit(poly, values_to_fit1, values_to_fit2)
         self._print_fit(popt, attribute2, label=attribute1)
+        return poly, popt, pcov
+
+    def fit_data_vs_data(self, data1, data2, order, label1='E', label2='w01', scale_factor1=1.0, scale_factor2=1.0, sigma_pos=None):
+        poly = mu_fit_selector(order)
+
+        values_to_fit1 = np.array(data1)*scale_factor1
+        values_to_fit2 = np.array(data2)*scale_factor2
+        if sigma_pos is not None:
+            sigma = np.ones(len(values_to_fit1))
+            sigma[sigma_pos] = 0.01
+            popt, pcov = curve_fit(poly, values_to_fit1, values_to_fit2,
+                                   sigma=sigma)
+        else:
+            popt, pcov = curve_fit(poly, values_to_fit1, values_to_fit2)
+        self._print_fit(popt, label2, label=label1)
         return poly, popt, pcov
 
     def _print_fit(self, popt, attribute, label='E'):
