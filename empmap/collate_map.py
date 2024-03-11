@@ -100,7 +100,7 @@ class EmpiricalMap:
         return
 
     @classmethod
-    def load_self(self, filename):
+    def load_self(cls, filename):
         """ Load the EmpiricalMap from a file. """
         with open(filename, 'rb') as f:
             return pickle.load(f)
@@ -133,7 +133,7 @@ class EmpiricalMap:
         # Check if the attribute is present in the class.
         if getattr(self, attribute) is None:
             raise ValueError(
-                "The attribute %s is not present in the class" % attribute)
+                f"The attribute {attribute} is not present in the class")
 
         values_to_fit = np.array(getattr(self, attribute))
         popt, pcov = curve_fit(poly, self.Eproj, values_to_fit*scale_factor)
@@ -156,7 +156,7 @@ class EmpiricalMap:
         plt.scatter(self.Eproj, values)
         plt.plot(es, poly(es, *popt))
         plt.xlabel("E")
-        plt.ylabel("%s" % attribute)
+        plt.ylabel(f"{attribute}")
         plt.show()
 
     def build_base_data(self, **kwargs):
@@ -224,8 +224,12 @@ class EmpiricalMap:
             try:
                 full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
                 # Construct the potential object.
-                pot1d = Potential1D(full_prefix + "rOHs.dat", full_prefix + "energies.dat",
-                                    full_prefix + "dipoles.dat", full_prefix + "eOHs.dat")
+                pot1d = Potential1D(
+                    f"{full_prefix}rOHs.dat",
+                    f"{full_prefix}energies.dat",
+                    f"{full_prefix}dipoles.dat",
+                    f"{full_prefix}eOHs.dat",
+                )
                 pot1d.fit_potential_to_poly(pot_poly_order)
                 pot1d.fit_dipole_to_poly(dip_poly_order)
                 # Construct the DVR
@@ -251,5 +255,5 @@ class EmpiricalMap:
         eproj = []
         for file in self.file_list:
             full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
-            eproj.append(np.loadtxt(full_prefix + "proj_field.dat"))
+            eproj.append(np.loadtxt(f"{full_prefix}proj_field.dat"))
         return np.array(eproj)
