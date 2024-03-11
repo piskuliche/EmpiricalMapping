@@ -127,13 +127,12 @@ class GaussianLogFile:
                     energy = float(line.split()[4])
                     energies.append(energy)
 
-        if len(energies) == 0:
+        if not energies:
             raise ValueError("No energies found in the log file")
 
-        if expected is not None:
-            if len(energies) != expected:
-                raise ValueError("Expected %d energies, but found %d" %
-                                 (expected, len(energies)))
+        if expected is not None and len(energies) != expected:
+            raise ValueError("Expected %d energies, but found %d" %
+                             (expected, len(energies)))
 
         return np.array(energies)
 
@@ -159,21 +158,6 @@ class GaussianLogFile:
         """
         raise DeprecationWarning(
             "This function is deprecated. Use grab_tensor_from_gaussian instead.")
-        dipole = []
-        prev_line = ""
-        with open(self.logname, 'r') as f:
-            for line in f:
-                if "X= " in line and "Dipole moment (field" in prev_line:
-                    x = float(line.split()[1])
-                    y = float(line.split()[3])
-                    z = float(line.split()[5])
-                    dipole.append([x, y, z])
-                prev_line = line
-
-        if len(dipole) == 0:
-            raise ValueError("No dipole found in the log file")
-
-        return np.array(dipole)
 
     def grab_tensor_from_gaussian(self, comparison_choice='dipole', data_column=2):
         """ Grabs a tensor from the Gaussian log file.
@@ -248,7 +232,12 @@ class GaussianLogFile:
         with open(self.logname, 'r') as f:
             for line in f:
                 # General way of pulling data from the Gaussian log file
-                if (any(comp in line for comp in components) and flag_tensor) and not (any(skip in line for skip in ["Debye", "parallel", "vector", "esu"])):
+                if (
+                    any(comp in line for comp in components) and flag_tensor
+                ) and all(
+                    skip not in line
+                    for skip in ["Debye", "parallel", "vector", "esu"]
+                ):
                     if "|| (z)" in line:
                         data = line.strip().split()[data_column+1]
                     else:
