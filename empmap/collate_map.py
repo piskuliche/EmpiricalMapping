@@ -110,7 +110,7 @@ class EmpiricalMap:
         raise NotImplemented("This function hasn't been implemented yet.")
 
     @staticmethod
-    def r2_score(xdata, y_actual, poly, popt):
+    def r2_score(xdata, y_actual, poly, popt, scale_x=1.0, scale_y=1.0):
         """ Calculate the R^2 score. 
 
         Notes:
@@ -143,7 +143,7 @@ class EmpiricalMap:
             The R^2 score.
 
         """
-        xdata, y_actual = np.array(xdata), np.array(y_actual)
+        xdata, y_actual = np.array(xdata)*scale_x, np.array(y_actual)*scale_y
         residuals = y_actual - poly(xdata, *popt)
         ss_res = np.sum(residuals**2)
         ss_tot = np.sum((y_actual - np.mean(y_actual))**2)
@@ -166,36 +166,45 @@ class EmpiricalMap:
         """
         w01_scale = self.w01[-1]/experimental_w01
         self.map_fit_parameters = {}
+        # Fit the first fundamenetal frequency, w01
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "Eproj", "w01", order_omega, scale_factor2=w01_scale, sigma_pos=sigma_pos)
         r2_score = self.r2_score(self.Eproj, self.w01,
-                                 poly, popt)
+                                 poly, popt, scale_y=w01_scale)
         self.map_fit_parameters['w01'] = (popt, pcov, r2_score)
 
+        # Fit the second fundamenetal frequency, w12
         poly, popt, pcov = self.fit_attribute_vs_attribute(
             "Eproj", "w12", order_omega, scale_factor2=w01_scale, sigma_pos=sigma_pos)
-        r2_score = self.r2_score(self.Eproj, self.w12, poly, popt)
+        r2_score = self.r2_score(self.Eproj, self.w12,
+                                 poly, popt, scale_y=w01_scale)
         self.map_fit_parameters['w12'] = (popt, pcov, r2_score)
 
+        # Fit the first positon matrix element, x01
         poly, popt, pcov = self.fit_attribute_vs_attribute(
-            "w01", "x01", order_x)
-        r2_score = self.r2_score(self.w01, self.x01, poly, popt)
+            "w01", "x01", order_x, scale_factor1=w01_scale)
+        r2_score = self.r2_score(
+            self.w01, self.x01, poly, popt, scale_x=w01_scale)
         self.map_fit_parameters['x01'] = (popt, pcov, r2_score)
 
+        # Fit the second positon matrix element, x12
         poly, popt, pcov = self.fit_attribute_vs_attribute(
-            "w12", "x12", order_x)
-        r2_score = self.r2_score(self.w12, self.x12, poly, popt)
+            "w12", "x12", order_x, scale_factor1=w01_scale)
+        r2_score = self.r2_score(
+            self.w12, self.x12, poly, popt, scale_x=w01_scale)
         self.map_fit_parameters['x12'] = (popt, pcov, r2_score)
 
+        # Fit the first dipole matrix derivative, mu'
         poly, popt, pcov = self.fit_attribute_vs_attribute(
-            "Eproj", "dmu_num", order_mu, sigma_pos=[-1])
+            "Eproj", "dmu_num", order_mu, sigma_pos=sigma_pos)
         r2_score = self.r2_score(self.Eproj, self.dmu_num, poly, popt)
         self.map_fit_parameters['dmu_num'] = (popt, pcov, r2_score)
 
+        # Fit the first dipole matrix derivative, mu'
         data1 = self.Eproj
         data2 = np.divide(self.dmu_num, self.dmu_num[-1])
         poly, popt, pcov = self.fit_data_vs_data(
-            data1, data2, order_mu, label1='E', label2='dmu_num')
+            data1, data2, order_mu, label1='E', label2='dmu_num_scaled')
         r2_score = self.r2_score(data1, data2, poly, popt)
         self.map_fit_parameters['dmu_num_scaled'] = (popt, pcov, r2_score)
 
@@ -276,10 +285,10 @@ class EmpiricalMap:
     def _print_fit(self, popt, attribute, label='E'):
         """ Prints the fit to the screen. """
         if len(popt) == 2:
-            print("%s = %10.4f + %10.4f*%s" %
+            print("%s = %10.10f + %10.10f*%s" %
                   (attribute, popt[0], popt[1], label))
         elif len(popt) == 3:
-            print("%s = %10.4f + %10.4f*%s + %10.4f*%s^2" % (attribute,
+            print("%s = %10.10f + %10.10f*%s + %10.10f*%s^2" % (attribute,
                   popt[0], popt[1], label, popt[2], label))
         return
 
