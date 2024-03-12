@@ -343,7 +343,10 @@ class EmpiricalMap:
             self.dmu_num.append(np.abs(dvr.pot1d.mu_fit['dmu_num']))
         attributes.extend(['dmu', 'dmu_num'])
         for attribute in attributes:
-            setattr(self, attribute, np.array(getattr(self, attribute)))
+            try:
+                setattr(self, attribute, np.array(getattr(self, attribute)))
+            except ValueError:
+                pass
 
     def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3, max_fail=10):
         """ Code to contstruct and obtain eigenvalues and eigenvectors using the DVR approach.
