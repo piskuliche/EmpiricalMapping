@@ -346,7 +346,7 @@ class EmpiricalMap:
             try:
                 setattr(self, attribute, np.array(getattr(self, attribute)))
             except ValueError:
-                pass
+                print(f"Failed to set attribute {attribute} as an array")
 
     def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3, max_fail=10):
         """ Code to contstruct and obtain eigenvalues and eigenvectors using the DVR approach.
