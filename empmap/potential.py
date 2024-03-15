@@ -349,7 +349,7 @@ class Potential1D:
         if deriv_order > 1:
             dmufit_popt = np.zeros(deriv_order)
             for i in range(deriv_order):
-                dmufit_popt[i] = popt[i+1]
+                dmufit_popt[i] = (i+1)*popt[i+1]
         return dmufit_popt
 
     def _display_polyfit(self, order, poly, popt, verbose=False):
