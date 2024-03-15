@@ -217,6 +217,15 @@ class EmpiricalMap:
             data1, data2, poly, popt)
         self.map_fit_parameters['dmu_num_scaled'] = (popt, pcov, r2_score)
 
+        # New test
+        data1 = self.Eproj
+        data2 = np.divide(self.dmu, self.dmu[-1])
+        poly, popt, pcov = self.fit_data_vs_data(
+            data1, data2, order_mu, label1='E', label2='dmu_scaled')
+        r2_score = self.r2_score(
+            data1, data2, poly, popt)
+        self.map_fit_parameters['dmu_scaled'] = (popt, pcov, r2_score)
+
         return
 
     def fit_attribute_of_map(self, attribute, order, scale_factor=1.0, display_plot=False):
