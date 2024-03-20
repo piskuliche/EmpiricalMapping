@@ -1,6 +1,7 @@
 from empmap.poly_fit import mu_fit_selector
 from scipy.optimize import curve_fit
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Map:
@@ -67,12 +68,29 @@ class Map:
         if self.popt is None:
             raise ValueError(
                 "You must fit the data to a polynomial before reporting the fit.")
+        popt = self.popt
         if len(self.popt) == 2:
-            self.popt.append(0)
+            popt.append(0)
         print(
-            f"{self.ylabel} = {self.popt[0]:10.5f} + {self.popt[1]:10.5f} * {self.xlabel} + {self.popt[2]:10.5f} * {self.xlabel}^2")
+            f"{self.ylabel} = {popt[0]:10.5f} + {popt[1]:10.5f} * {self.xlabel} + {popt[2]:10.5f} * {self.xlabel}^2")
 
         print("Optimal parameters: ", self.popt)
         print("R^2 value: ", self.calculate_r_squared())
         print("Error: ", np.sum(self.calculate_fit_error()**2))
+        return
+
+    def display_map(self):
+        """ Display the data and the fit on a plot.
+
+        """
+        if self.popt is None:
+            raise ValueError(
+                "You must fit the data to a polynomial before displaying the map.")
+        plt.scatter(self.xdata, self.ydata, c='black', label='data')
+        plt.plot(self.xdata, self.poly(self.xdata, *self.popt), c='red',
+                 label='fit')
+        plt.xlabel(self.xlabel)
+        plt.ylabel(self.ylabel)
+        plt.legend()
+        plt.show()
         return
