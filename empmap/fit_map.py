@@ -11,7 +11,7 @@ class Map:
         self.xlabel = xlabel
         self.ylabel = ylabel
 
-        self.poly = None
+        self.degree = None
         self.popt = None
 
     def fit_to_poly(self, degree, **kwargs):
@@ -28,9 +28,9 @@ class Map:
         --------
         popt: array
             The optimal parameters for the polynomial fit."""
-        self.poly = mu_fit_selector(degree)
+        self.degree = degree
         self.popt, self.pcov = curve_fit(
-            self.poly, self.xdata, self.ydata, **kwargs)
+            self._get_poly(), self.xdata, self.ydata, **kwargs)
         return
 
     def calculate_fit_error(self):
@@ -45,7 +45,7 @@ class Map:
         if self.popt is None:
             raise ValueError(
                 "You must fit the data to a polynomial before calculating the fit error.")
-        return self.ydata - self.poly(self.xdata, *self.popt)
+        return self.ydata - self._get_poly()(self.xdata, *self.popt)
 
     def calculate_r_squared(self):
         """ Calculate the R^2 value of the fit.
@@ -93,13 +93,24 @@ class Map:
                 "You must fit the data to a polynomial before displaying the map.")
         plt.scatter(self.xdata, self.ydata, c='black', label='data')
         xvals = np.linspace(min(self.xdata), max(self.xdata), 100)
-        plt.plot(xvals, self.poly(xvals, *self.popt), c='red',
+        plt.plot(xvals, self._get_poly()(xvals, *self.popt), c='red',
                  label='fit')
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.legend()
         plt.show()
         return
+
+    def _get_poly(self):
+        """ Return the polynomial function for the fit.
+
+        Returns:
+        --------
+        poly: function
+            The polynomial function for the fit.
+
+        """
+        return mu_fit_selector(self.degree)
 
 
 class FullMap:
