@@ -74,5 +74,5 @@ class Map:
 
         print("Optimal parameters: ", self.popt)
         print("R^2 value: ", self.calculate_r_squared())
-        print("Error: ", self.calculate_fit_error())
+        print("Error: ", np.sum(self.calculate_fit_error()**2))
         return
