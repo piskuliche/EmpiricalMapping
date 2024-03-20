@@ -87,7 +87,8 @@ class Map:
             raise ValueError(
                 "You must fit the data to a polynomial before displaying the map.")
         plt.scatter(self.xdata, self.ydata, c='black', label='data')
-        plt.plot(self.xdata, self.poly(self.xdata, *self.popt), c='red',
+        xvals = np.linspace(min(self.xdata), max(self.xdata), 100)
+        plt.plot(xvals, self.poly(xvals, *self.popt), c='red',
                  label='fit')
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
