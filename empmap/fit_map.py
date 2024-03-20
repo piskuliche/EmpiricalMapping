@@ -70,7 +70,7 @@ class Map:
                 "You must fit the data to a polynomial before reporting the fit.")
         popt = self.popt
         if len(self.popt) == 2:
-            popt.append(0)
+            popt = np.append(popt, 0)
         print(
             f"{self.ylabel} = {popt[0]:10.5f} + {popt[1]:10.5f} * {self.xlabel} + {popt[2]:10.5f} * {self.xlabel}^2")
 
