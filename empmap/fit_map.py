@@ -98,8 +98,7 @@ class Map:
 
 
 class FullMap:
-    def __init__(self, attributes):
-        self.attributes = attributes
+    def __init__(self):
         self.maps = {}
         self.order = {}
 
