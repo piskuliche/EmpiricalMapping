@@ -67,8 +67,11 @@ class Map:
         if self.popt is None:
             raise ValueError(
                 "You must fit the data to a polynomial before reporting the fit.")
-        print(f"{self.ylabel} = {self.popt[0]:10.5f}" + [
-              f" + {self.popt[i]:10.5f} * {self.xlabel}^{i}" for i in range(1, len(self.popt))] + ".")
+        if len(self.popt) == 2:
+            self.popt.append(0)
+        print(
+            f"{self.ylabel} = {self.popt[0]:10.5f} + {self.popt[1]:10.5f} * {self.xlabel} + {self.popt[2]:10.5f} * {self.xlabel}^2")
+
         print("Optimal parameters: ", self.popt)
         print("R^2 value: ", self.calculate_r_squared())
         print("Error: ", self.calculate_fit_error())
