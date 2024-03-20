@@ -95,3 +95,28 @@ class Map:
         plt.legend()
         plt.show()
         return
+
+
+class FullMap:
+    def __init__(self, attributes):
+        self.attributes = attributes
+        self.maps = {}
+        self.order = {}
+
+    def add_map(self, label, order,  xdata, ydata, **kwargs):
+        self.maps[label] = Map(xdata, ydata, **kwargs)
+        self.order[label] = order
+        return
+
+    def fit_maps(self):
+        for label in self.maps.keys():
+            self.maps[label].fit_to_poly(self.order[label])
+        return
+
+    def report_maps(self, display=False):
+        for label in self.maps.keys():
+            print(f"Map: {label}")
+            self.maps[label].report_map()
+            if display:
+                self.maps[label].display_map()
+        return
