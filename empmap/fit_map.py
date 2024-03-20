@@ -69,13 +69,13 @@ class Map:
             raise ValueError(
                 "You must fit the data to a polynomial before reporting the fit.")
         print("*** ******** ***")
-        print(" Fit Report - {self.ylabel} vs {self.xlabel}")
+        print(f" Fit Report - {self.ylabel} vs {self.xlabel}")
         print("*** ******** ***")
         popt = self.popt
         if len(self.popt) == 2:
             popt = np.append(popt, 0)
         print(
-            f"{self.ylabel} = {popt[0]:10.5f} + {popt[1]:10.5f} * {self.xlabel} + {popt[2]:10.5f} * {self.xlabel}^2")
+            f"{self.ylabel} = {popt[0]:10.10f} + {popt[1]:10.10f} * {self.xlabel} + {popt[2]:10.10f} * {self.xlabel}^2")
 
         print("Optimal parameters: ", self.popt)
         print("R^2 value: ", self.calculate_r_squared())
