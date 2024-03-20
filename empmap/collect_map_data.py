@@ -133,16 +133,14 @@ class CollectMapData:
         """ This function builds the data arrays using the DVR approach """
 
         attributes = ['w01', 'w12', 'psi', 'mupsi1',
-                      'xpsi1', 'x01', 'x12', 'mu01', 'mu12']
+                      'xpsi1', 'x01', 'x12', 'mu01', 'mu12', 'dmu']
         for dvr in dvrs:
+            # Loop over normal attributes
             for attribute in attributes:
                 if not hasattr(self, attribute):
                     setattr(self, attribute, [])
                 getattr(self, attribute).append(
                     np.abs(getattr(dvr, attribute)))
-            self.dmu.append(np.abs(dvr.pot1d.mu_fit['dmu/dr_r0']))
-            self.dmu_num.append(np.abs(dvr.pot1d.mu_fit['dmu_num']))
-        attributes.extend(['dmu', 'dmu_num'])
         for attribute in attributes:
             try:
                 setattr(self, attribute, np.array(getattr(self, attribute)))

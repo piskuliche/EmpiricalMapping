@@ -167,6 +167,8 @@ class DVR:
         self.mupsi1 = mupsi1
         self.xpsi1 = xpsi1
 
+        self.dmu = self.mu_fit['dmu/dr_r0']
+
         return
 
     def _calculate_wavefunction_from_eigenvector(self, arg0):
