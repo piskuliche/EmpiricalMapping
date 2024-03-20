@@ -106,9 +106,6 @@ class EmpiricalMap:
         with open(filename, 'rb') as f:
             return pickle.load(f)
 
-    def create_map_by_fitting(self, order):
-        raise NotImplemented("This function hasn't been implemented yet.")
-
     @staticmethod
     def r2_score(xdata, y_actual, poly, popt, scale_x=1.0, scale_y=1.0):
         """ Calculate the R^2 score. 
@@ -225,7 +222,6 @@ class EmpiricalMap:
         r2_score = self.r2_score(
             data1, data2, poly, popt)
         self.map_fit_parameters['dmu_scaled'] = (popt, pcov, r2_score)
-
         return
 
     def fit_attribute_of_map(self, attribute, order, scale_factor=1.0, display_plot=False):
@@ -286,6 +282,7 @@ class EmpiricalMap:
         return poly, popt, pcov
 
     def fit_data_vs_data(self, data1, data2, order, label1='E', label2='w01', scale_factor1=1.0, scale_factor2=1.0, sigma_pos=None):
+        """ """
         poly = mu_fit_selector(order)
 
         values_to_fit1 = np.array(data1)*scale_factor1
@@ -436,7 +433,7 @@ class EmpiricalMap:
         return dvr
 
     def _obtain_eproj(self):
-        """ Reads the projected electric fields from the file based on the file_prefix"""
+        """ Reads the projected electric fields from the file based on the file_prefix """
         eproj = []
         for file in self.file_list:
             full_prefix = self.calc_dir + "%d/" % file + self.file_prefix
