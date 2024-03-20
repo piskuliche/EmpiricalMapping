@@ -7,6 +7,9 @@ class Map:
     def __init__(self, xdata, ydata, xlabel="E", ylabel="w"):
         self.xdata = xdata
         self.ydata = ydata
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+
         self.poly = None
         self.popt = None
 
