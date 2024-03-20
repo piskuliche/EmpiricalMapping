@@ -68,6 +68,9 @@ class Map:
         if self.popt is None:
             raise ValueError(
                 "You must fit the data to a polynomial before reporting the fit.")
+        print("*** ******** ***")
+        print(" Fit Report - {self.ylabel} vs {self.xlabel}")
+        print("*** ******** ***")
         popt = self.popt
         if len(self.popt) == 2:
             popt = np.append(popt, 0)
@@ -78,6 +81,7 @@ class Map:
         print("R^2 value: ", self.calculate_r_squared())
         print("RMSE: ", np.sqrt(np.sum(self.calculate_fit_error()**2)) /
               (len(self.xdata)-len(self.popt)))
+        print("*** ******** ***")
         return
 
     def display_map(self):
