@@ -76,7 +76,8 @@ class Map:
 
         print("Optimal parameters: ", self.popt)
         print("R^2 value: ", self.calculate_r_squared())
-        print("Error: ", np.sum(self.calculate_fit_error()**2))
+        print("RMSE: ", np.sqrt(np.sum(self.calculate_fit_error()**2)) /
+              (len(self.xdata)-len(self.popt)))
         return
 
     def display_map(self):
