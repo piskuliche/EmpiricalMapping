@@ -161,13 +161,32 @@ class Map:
                 "You must fit the data to a polynomial before displaying the map.")
         plt.scatter(self.xdata, self.ydata, c='black', label='data')
         xvals = np.linspace(min(self.xdata), max(self.xdata), 100)
-        plt.plot(xvals, self._get_poly()(xvals, *self.popt), c='red',
+        plt.plot(xvals, self.get_fit(xvals), c='red',
                  label='fit')
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.legend()
         plt.show()
         return
+
+    def get_fit(self, xdata):
+        """ Return the fit for a given xdata.
+
+        Parameters:
+        -----------
+        xdata: array
+            The xdata for which to return the fit.
+
+        Returns:
+        --------
+        fit: array
+            The fit for the given xdata.
+
+        """
+        if self.popt is None:
+            raise ValueError(
+                "You must fit the data to a polynomial before returning the fit.")
+        return self._get_poly()(xdata, *self.popt)
 
     def _get_poly(self):
         """ Return the polynomial function for the fit.
@@ -220,7 +239,7 @@ class FullMap:
 
     def add_fit_keyword(self, label, keyword, value):
         self._test_existence(label)
-        self.maps[label].fit_keywords.update(keyword)
+        self.maps[label].fit_keywords[keyword] = value
 
     def _test_existence(self, label):
         if label not in self.maps.keys():
