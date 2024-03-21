@@ -168,6 +168,7 @@ class DVR:
         self.xpsi1 = xpsi1
 
         self.dmu = self.pot1d.mu_fit['dmu/dr_r0']
+        self.diso_pol = self.pot1d.iso_pol_fit['diso_pol']
 
         return
 
