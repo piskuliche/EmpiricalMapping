@@ -196,6 +196,9 @@ class Potential1D:
         self.rOH = None
         self.pot_energy = None
         self.mux, self.muy, self.muz = None, None, None
+        self.iso_pol = None
+        self.polarization = None
+
         self._read_data(rOH_file, pot_file, dip_file, eOH_file, pol_file)
         self.ndata = len(self.rOH)
         self._project_mu()
