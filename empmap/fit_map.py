@@ -14,9 +14,10 @@ class Map:
         self.degree = None
         self.popt = None
         self.initial_guess = None
-        self.fit_bounds = None
+        self.fit_bounds = (-np.inf, np.inf)
+        self.fit_keywords = {}
 
-    def fit_to_poly(self, degree, **kwargs):
+    def fit_to_poly(self, degree):
         """ Fit the data to a polynomial of degree 'degree' and return the optimal parameters.
 
         Parameters:
@@ -32,7 +33,7 @@ class Map:
             The optimal parameters for the polynomial fit."""
         self.degree = degree
         self.popt, self.pcov = curve_fit(
-            self._get_poly(), self.xdata, self.ydata, bounds=self.fit_bounds, p0=self.initial_guess, **kwargs)
+            self._get_poly(), self.xdata, self.ydata, **self.fit_keywords)
         return
 
     def add_bounds(self, bounds):
@@ -55,8 +56,7 @@ class Map:
 
         if bounds is None:
             bounds = (-np.inf, np.inf)
-
-        self.fit_bounds = bounds
+        self.fit_keywords['bounds'] = bounds
         return
 
     def add_initial_guess(self, initial_guess):
@@ -71,7 +71,34 @@ class Map:
         if initial_guess is not None and not isinstance(initial_guess, list):
             raise TypeError(
                 f"Initial guess must be a list. Got {type(initial_guess)}.")
-        self.initial_guess = initial_guess
+        self.add_fit_keyword('p0', initial_guess)
+        return
+
+    def add_fit_keyword(self, keyword, value):
+        """ Add a keyword to the fit.
+
+        Parameters:
+        -----------
+        keyword: str
+            The keyword for the fit.
+        value: any
+            The value for the keyword.
+
+        """
+        self.fit_keywords[keyword] = value
+        return
+
+    def remove_fit_keyword(self, keyword):
+        """ Remove a keyword from the fit.
+
+        Parameters:
+        -----------
+        keyword: str
+            The keyword to remove from the fit.
+
+        """
+        if keyword in self.fit_keywords.keys():
+            del self.fit_keywords[keyword]
         return
 
     def calculate_fit_error(self):
@@ -169,10 +196,9 @@ class FullMap:
             self.maps[label].fit_to_poly(self.order[label])
         return
 
-    def fit_map(self, label, **kwargs):
-        if label not in self.maps.keys():
-            raise ValueError(f"Map {label} not found.")
-        self.maps[label].fit_to_poly(self.order[label], **kwargs)
+    def fit_map(self, label):
+        self._test_existence(label)
+        self.maps[label].fit_to_poly(self.order[label])
 
     def report_maps(self, display=False):
         for label in self.maps.keys():
@@ -180,4 +206,23 @@ class FullMap:
             self.maps[label].report_map()
             if display:
                 self.maps[label].display_map()
+        return
+
+    def add_fit_guess(self, label, guess):
+        self._test_existence(label)
+        self.maps[label].add_initial_guess(guess)
+        return
+
+    def add_fit_bounds(self, label, guess):
+        self._test_existence(label)
+        self.maps[label].add_bounds(guess)
+        return
+
+    def add_fit_keyword(self, label, keyword, value):
+        self._test_existence(label)
+        self.maps[label].fit_keywords.update(keyword)
+
+    def _test_existence(self, label):
+        if label not in self.maps.keys():
+            raise ValueError(f"Map {label} not found.")
         return
