@@ -168,7 +168,7 @@ class Morse:
 
 
 class Potential1D:
-    def __init__(self, rOH_file, pot_file, dip_file, eOH_file):
+    def __init__(self, rOH_file, pot_file, dip_file, eOH_file, pol_file):
         """ Initialize the Potential1D class
 
         Notes:
@@ -185,6 +185,8 @@ class Potential1D:
             The file containing the dipole values [D]
         eOH_file : str
             The file containing the eOH values [Unitless]
+        pol_file : str
+            The file containing the polarizability values [au]
 
         Returns:
         --------
@@ -194,7 +196,7 @@ class Potential1D:
         self.rOH = None
         self.pot_energy = None
         self.mux, self.muy, self.muz = None, None, None
-        self._read_data(rOH_file, pot_file, dip_file, eOH_file)
+        self._read_data(rOH_file, pot_file, dip_file, eOH_file, pol_file)
         self.ndata = len(self.rOH)
         self._project_mu()
         self.pot_fit = {}
