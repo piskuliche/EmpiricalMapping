@@ -13,6 +13,8 @@ class Map:
 
         self.degree = None
         self.popt = None
+        self.initial_guess = None
+        self.fit_bounds = None
 
     def fit_to_poly(self, degree, **kwargs):
         """ Fit the data to a polynomial of degree 'degree' and return the optimal parameters.
@@ -30,7 +32,47 @@ class Map:
             The optimal parameters for the polynomial fit."""
         self.degree = degree
         self.popt, self.pcov = curve_fit(
-            self._get_poly(), self.xdata, self.ydata, **kwargs)
+            self._get_poly(), self.xdata, self.ydata, bounds=self.fit_bounds, p0=self.initial_guess, **kwargs)
+        return
+
+    def add_bounds(self, bounds):
+        """ Add bounds to the fit.
+
+        Parameters:
+        -----------
+        bounds: array
+            The bounds for the fit.
+
+        """
+        if bounds is not None:
+            # Check if bounds are a tuple
+            if not isinstance(bounds, tuple):
+                raise TypeError(f"Bounds must be a tuple. Got {type(bounds)}.")
+            # Check if bounds are the correct length
+            if len(bounds) != 2:
+                raise ValueError(
+                    f"Bounds must be of length 2. Got len({bounds}).")
+            # Check if bounds are arrays
+            if not isinstance(bounds[0], list) or not isinstance(bounds[1], list):
+                raise TypeError(
+                    f"Bounds must be a tuple of lists. Got {bounds}.")
+
+        self.fit_bounds = bounds
+        return
+
+    def add_initial_guess(self, initial_guess):
+        """ Add an initial guess to the fit.
+
+        Parameters:
+        -----------
+        initial_guess: array
+            The initial guess for the fit.
+
+        """
+        if initial_guess is not None and not isinstance(initial_guess, list):
+            raise TypeError(
+                f"Initial guess must be a list. Got {type(initial_guess)}.")
+        self.initial_guess = initial_guess
         return
 
     def calculate_fit_error(self):
@@ -127,6 +169,11 @@ class FullMap:
         for label in self.maps.keys():
             self.maps[label].fit_to_poly(self.order[label])
         return
+
+    def fit_map(self, label, **kwargs):
+        if label not in self.maps.keys():
+            raise ValueError(f"Map {label} not found.")
+        self.maps[label].fit_to_poly(self.order[label], **kwargs)
 
     def report_maps(self, display=False):
         for label in self.maps.keys():
