@@ -135,7 +135,7 @@ class CollectMapData:
         """ This function builds the data arrays using the DVR approach """
 
         attributes = ['w01', 'w12', 'psi', 'mupsi1',
-                      'xpsi1', 'x01', 'x12', 'mu01', 'mu12', 'dmu']
+                      'xpsi1', 'x01', 'x12', 'mu01', 'mu12', 'dmu', 'diso_pol']
         for dvr in dvrs:
             # Loop over normal attributes
             for attribute in attributes:
