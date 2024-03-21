@@ -111,7 +111,7 @@ class CollectMapData:
         self.Eproj = self._obtain_eproj()[dvr_read_successful]
         return
 
-    def obtain_dvr(self, file,  emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3):
+    def obtain_dvr(self, file,  emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3, pol_poly_order=3):
         """ Obtain a DVR for a given file. """
         full_prefix = f"{self.calc_dir}{file}/{self.file_prefix}"
         # Construct the potential object.
@@ -120,9 +120,11 @@ class CollectMapData:
             f"{full_prefix}energies.dat",
             f"{full_prefix}dipoles.dat",
             f"{full_prefix}eOHs.dat",
+            f"{full_prefix}polarizability.dat",
         )
         pot1d.fit_potential_to_poly(pot_poly_order)
         pot1d.fit_dipole_to_poly(dip_poly_order)
+        pot1d.fit_polarizability_to_poly(pol_poly_order)
         # Construct the DVR
         dvr = DVR(pot1d, emax=emax, xmax=xmax, mass1=mass1, mass2=mass2)
         # Do the DVR Calcualtion
@@ -147,7 +149,7 @@ class CollectMapData:
             except ValueError:
                 print(f"Failed to set attribute {attribute} as an array")
 
-    def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3, max_fail=10):
+    def _obtain_dvrs(self, emax=3.0, xmax=1.3, mass1=2.014, mass2=15.999, pot_poly_order=5, dip_poly_order=3, pol_poly_order=3, max_fail=10):
         """ Code to contstruct and obtain eigenvalues and eigenvectors using the DVR approach.
 
         Parameters:
@@ -164,6 +166,8 @@ class CollectMapData:
                 Order of Potential1D potential polynomial
             dip_poly_order : int
                 Order of Potential1D dipole polynomial
+            pol_poly_order : int
+                Order of Potential1D polarizability polynomial
 
         Returns
         -------
@@ -179,7 +183,7 @@ class CollectMapData:
         for file in self.file_list:
             try:
                 dvr = self.obtain_dvr(file, emax=emax, xmax=xmax, mass1=mass1, mass2=mass2,
-                                      pot_poly_order=pot_poly_order, dip_poly_order=dip_poly_order)
+                                      pot_poly_order=pot_poly_order, dip_poly_order=dip_poly_order, pol_poly_order=pol_poly_order)
                 # Store the Data
                 all_dvrs.append(dvr)
                 dvr_read_successful.append(True)
@@ -195,7 +199,7 @@ class CollectMapData:
         if os.path.exists(f"{self.calc_dir}gas/"):
             try:
                 dvr = self.obtain_dvr("gas", emax=emax, xmax=xmax, mass1=mass1, mass2=mass2,
-                                      pot_poly_order=pot_poly_order, dip_poly_order=dip_poly_order)
+                                      pot_poly_order=pot_poly_order, dip_poly_order=dip_poly_order, pol_poly_order=pol_poly_order)
                 # Store the Data
                 all_dvrs.append(dvr)
                 dvr_read_successful.append(True)
