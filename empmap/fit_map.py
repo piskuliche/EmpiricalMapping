@@ -52,10 +52,9 @@ class Map:
             if len(bounds) != 2:
                 raise ValueError(
                     f"Bounds must be of length 2. Got len({bounds}).")
-            # Check if bounds are arrays
-            if not isinstance(bounds[0], list) or not isinstance(bounds[1], list):
-                raise TypeError(
-                    f"Bounds must be a tuple of lists. Got {bounds}.")
+
+        if bounds is None:
+            bounds = (-np.inf, np.inf)
 
         self.fit_bounds = bounds
         return
