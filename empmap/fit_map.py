@@ -146,6 +146,7 @@ class Map:
             f"{self.ylabel} = {popt[0]:10.10f} + {popt[1]:10.10f} * {self.xlabel} + {popt[2]:10.10f} * {self.xlabel}^2")
 
         print("Optimal parameters: ", self.popt)
+        print("R value: ", np.sqrt(self.calculate_r_squared()))
         print("R^2 value: ", self.calculate_r_squared())
         print("RMSE: ", np.sqrt(np.sum(self.calculate_fit_error()**2)) /
               (len(self.xdata)-len(self.popt)))
