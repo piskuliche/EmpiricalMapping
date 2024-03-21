@@ -199,6 +199,7 @@ class Potential1D:
         self._project_mu()
         self.pot_fit = {}
         self.mu_fit = {}
+        self.iso_pol_fit = {}
 
         self.constants = ConstantsManagement()
 
@@ -285,6 +286,71 @@ class Potential1D:
             self.mu_fit['c'] = popt[2:]
 
         return
+
+    def calculate_iso_pol(self):
+        """ Calculate the isotropic polarizability
+
+        Notes:
+        ------
+        This function is used to calculate the isotropic polarizability.
+
+        This assumes that the polarizability is given in the form:
+        [alpha_xx, alpha_yx, alpha_yy, alpha_zx, alpha_zy, alpha_zz]
+
+        This is the order output by Gaussian.
+
+        Returns:
+        --------
+        None
+
+        """
+        self.iso_pol = [
+            (polar[0] + polar[2] + polar[5]) / 3.0 for polar in self.polarization
+        ]
+        self.iso_pol = np.array(self.iso_pol)
+        return
+
+    def fit_polarizability_to_poly(self, order):
+        """ Fit the polarizability to a polynomial
+
+        Notes:
+        ------
+        This function is used to fit the polarizability to a polynomial.
+
+        Parameters:
+        -----------
+        order : int
+            The order of the polynomial
+
+        Returns:
+        --------
+        None
+
+        """
+        if self.iso_pol is None:
+            if self.polarization is None:
+                raise ValueError("No polarizability data found")
+            else:
+                self.calculate_iso_pol()
+
+        pol_poly = mu_fit_selector(order)
+        if order > 1:
+            iso_pol_deriv_poly = mu_fit_selector(order-1)
+        popt, _ = curve_fit(pol_poly, self.rOH, self.iso_pol)
+        if order > 1:
+            diso_pol_popt = self._deriv_of_polyfit(popt)
+
+        # Find the closest data to the eq. bond distance
+        drOH = np.abs(self.rOH - self.pot_fit['r0'])
+        r0_index = np.argmin(drOH)
+        diso_pol_num = np.abs((self.iso_pol[r0_index+1]-self.iso_pol[r0_index-1]) /
+                              (self.rOH[r0_index+1]-self.rOH[r0_index-1]))
+
+        diso_pol = iso_pol_deriv_poly(self.pot_fit['r0'], *diso_pol_popt)
+
+        self.iso_pol_fit['diso_pol_num'] = diso_pol_num
+        self.iso_pol_fit['diso_pol'] = diso_pol
+        self.iso_pol_fit['order'] = order
 
     def fit_to_morse(self, reduced_mass, verbose=False):
         """ Fit the potential to a Morse potential
@@ -431,7 +497,7 @@ class Potential1D:
                     )
             print("# **************************************************")
 
-    def _read_data(self, rOH_file, pot_file, dip_file, eOH_file):
+    def _read_data(self, rOH_file, pot_file, dip_file, eOH_file, pol_file):
         """ Read the data from the files
 
         Notes:
@@ -447,9 +513,11 @@ class Potential1D:
         pot_file : str
             The file containing the potential energy values [eV]
         dip_file : str
-            The file containing the dipole values [D]
+            The file containing the dipole values [au]
         eOH_file : str
             The file containing the eOH values [Unitless]
+        pol_file : str
+            The file containing the polarizability values [au]
 
         Returns:
         --------
@@ -482,6 +550,10 @@ class Potential1D:
                 eOH_file, dtype=float, usecols=(0), unpack=True)
         except:
             raise ValueError(f"Error reading eOH file {eOH_file} ")
+        try:
+            self.polarization = np.genfromtxt(pol_file)
+        except:
+            raise ValueError(f"Error reading polarization file {eOH_file} ")
         return
 
 
@@ -489,7 +561,7 @@ if __name__ == "__main__":
     print("Setting up the potential class")
 
     pot = Potential1D("../newmap/1/scan_rOHs.dat", "../newmap/1/scan_energies.dat",
-                      "../newmap/1/scan_dipoles.dat", "../newmap/1/scan_eOHs.dat")
+                      "../newmap/1/scan_dipoles.dat", "../newmap/1/scan_eOHs.dat", "../newmap/1/scan_polarizability.dat")
     import numpy as np
     import matplotlib.pyplot as plt
     pot.fit_to_morse(34/19)
