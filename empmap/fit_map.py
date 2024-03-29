@@ -13,9 +13,26 @@ class Map:
 
         self.degree = None
         self.popt = None
+
         self.initial_guess = None
         self.fit_bounds = (-np.inf, np.inf)
         self.fit_keywords = {}
+
+    @classmethod
+    def build_from_map(cls, popt, xdata=None, ydata=None, xlabel="E", ylabel="w"):
+        instance = cls.__new__(cls)
+        instance.xdata = xdata
+        instance.ydata = ydata
+        instance.xlabel = xlabel
+        instance.ylabel = ylabel
+
+        instance.degree = len(popt) - 1
+        instance.popt = popt
+
+        instance.initial_guess = None
+        instance.fit_bounds = (-np.inf, np.inf)
+        instance.fit_keywords = {}
+        return instance
 
     def fit_to_poly(self, degree):
         """ Fit the data to a polynomial of degree 'degree' and return the optimal parameters.
@@ -31,6 +48,9 @@ class Map:
         --------
         popt: array
             The optimal parameters for the polynomial fit."""
+        if self.xdata is None or self.ydata is None:
+            raise ValueError(
+                "This is a prebuilt map, you cannot fit it to a polynomial.")
         self.degree = degree
         self.popt, self.pcov = curve_fit(
             self._get_poly(), self.xdata, self.ydata, **self.fit_keywords)
@@ -146,27 +166,49 @@ class Map:
             f"{self.ylabel} = {popt[0]:10.10f} + {popt[1]:10.10f} * {self.xlabel} + {popt[2]:10.10f} * {self.xlabel}^2")
 
         print("Optimal parameters: ", self.popt)
-        print("R value: ", np.sqrt(self.calculate_r_squared()))
-        print("R^2 value: ", self.calculate_r_squared())
-        print("RMSE: ", np.sqrt(np.sum(self.calculate_fit_error()**2)) /
-              (len(self.xdata)-len(self.popt)))
+        if self.ydata is not None:
+            print("R value: ", np.sqrt(self.calculate_r_squared()))
+            print("R^2 value: ", self.calculate_r_squared())
+            print("RMSE: ", np.sqrt(np.sum(self.calculate_fit_error()**2)) /
+                  (len(self.xdata)-len(self.popt)))
         print("*** ******** ***")
         return
 
-    def display_map(self):
+    def report_latex(self):
+        """ Print a report of the fit to the console in latex format.
+
+        """
+        if self.popt is None:
+            raise ValueError(
+                "You must fit the data to a polynomial before reporting the fit.")
+        if len(self.popt) == 2:
+            print(f"{self.ylabel} = {self.popt[0]:10.10f} + {self.popt[1]:10.10f} {self.xlabel} & " +
+                  f"{np.sqrt(self.calculate_r_squared())} & " +
+                  f"{np.sqrt(np.sum(self.calculate_fit_error()**2)) / (len(self.xdata)-len(self.popt))}")
+        else:
+            print(f"{self.ylabel} = {self.popt[0]:10.10f} + {self.popt[1]:10.10f} {self.xlabel} + {self.popt[2]:10.10f} {self.xlabel}^2 & " +
+                  f"{np.sqrt(self.calculate_r_squared())} & " +
+                  f"{np.sqrt(np.sum(self.calculate_fit_error()**2)) / (len(self.xdata)-len(self.popt))}")
+        return
+
+    def display_map(self, xvals=None, **kwargs):
         """ Display the data and the fit on a plot.
 
         """
         if self.popt is None:
             raise ValueError(
                 "You must fit the data to a polynomial before displaying the map.")
-        plt.scatter(self.xdata, self.ydata, c='black', label='data')
-        xvals = np.linspace(min(self.xdata), max(self.xdata), 100)
+        fig = plt.figure(**kwargs)
+        if self.xdata is not None:
+            plt.scatter(self.xdata, self.ydata, c='black', label='data')
+        if xvals is None and self.xdata is not None:
+            xvals = np.linspace(min(self.xdata), max(self.xdata), 100)
+
         plt.plot(xvals, self.get_fit(xvals), c='red',
                  label='fit')
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
-        plt.legend()
+        plt.legend(frameon=False)
         plt.show()
         return
 
@@ -203,46 +245,150 @@ class Map:
 
 class FullMap:
     def __init__(self):
+        """ Initialize the FullMap object.
+        """
         self.maps = {}
         self.order = {}
 
     def add_map(self, label, order,  xdata, ydata, **kwargs):
+        """ Add a map to the FullMap object.
+
+        Parameters:
+        -----------
+        label: str
+            The label for the map.
+        order: int
+            The order of the polynomial to fit the map to.
+        xdata: array
+            The xdata for the map.
+        ydata: array
+            The ydata for the map.
+        kwargs: dict
+            Additional keyword arguments to be passed to the Map object.
+
+        """
+
         self.maps[label] = Map(xdata, ydata, **kwargs)
         self.order[label] = order
         return
 
+    def add_prebuilt_map(self, label, popt, **kwargs):
+        """ Add a prebuilt map to the FullMap object.
+
+        Parameters:
+        -----------
+        label: str
+            The label for the map.
+        popt: array
+            The optimal parameters for the map.
+        kwargs: dict
+            Additional keyword arguments to be passed to the Map object.
+
+
+        """
+        self.maps[label] = Map.build_from_map(popt, **kwargs)
+        self.order[label] = self.maps[label].degree
+        return
+
     def fit_maps(self):
+        """
+        Fit all maps to their respective polynomials.
+        """
         for label in self.maps.keys():
             self.maps[label].fit_to_poly(self.order[label])
         return
 
     def fit_map(self, label):
+        """
+        Fit a single map to its respective polynomial.
+        """
         self._test_existence(label)
         self.maps[label].fit_to_poly(self.order[label])
 
-    def report_maps(self, display=False):
+    def report_maps(self, display=False, **kwargs):
+        """
+        Report all maps in the FullMap object.
+
+        Parameters:
+        -----------
+        display: bool
+            Whether to display the maps.
+        kwargs: dict
+            Additional keyword arguments to be passed to the display_map function. 
+            This really supplies keyword arguments to plt.figure(), so dpi=x, figsize=(x,y) etc.
+
+        """
         for label in self.maps.keys():
             print(f"Map: {label}")
             self.maps[label].report_map()
             if display:
-                self.maps[label].display_map()
+                self.maps[label].display_map(**kwargs)
         return
 
     def add_fit_guess(self, label, guess):
+        """
+        Add an initial guess to the fit.
+
+        Parameters:
+        -----------
+        label: str
+            The label for the map.
+        guess: array
+            The initial guess for the fit.
+
+        """
         self._test_existence(label)
         self.maps[label].add_initial_guess(guess)
         return
 
     def add_fit_bounds(self, label, guess):
+        """
+        Add bounds to the fit.
+
+        Parameters:
+        -----------
+        label: str
+            The label for the map.
+        guess: array
+            The bounds for the fit.
+
+        """
         self._test_existence(label)
         self.maps[label].add_bounds(guess)
         return
 
     def add_fit_keyword(self, label, keyword, value):
+        """
+        Add a keyword to the fit.
+
+        Parameters:
+        -----------
+        label: str
+            The label for the map.
+        keyword: str
+            The keyword for the fit.
+        value: any
+            The value for the keyword.
+        """
         self._test_existence(label)
         self.maps[label].fit_keywords[keyword] = value
+        return
 
     def _test_existence(self, label):
+        """
+        Test if a map exists in the FullMap object.
+
+        Parameters:
+        -----------
+        label: str
+            The label for the map.
+
+        Raises:
+        -------
+        ValueError:
+            If the map does not exist.
+
+        """
         if label not in self.maps.keys():
             raise ValueError(f"Map {label} not found.")
         return
