@@ -204,8 +204,7 @@ class Map:
         if xvals is None and self.xdata is not None:
             xvals = np.linspace(min(self.xdata), max(self.xdata), 100)
 
-        plt.plot(xvals, self.get_fit(xvals), c='red',
-                 label='fit')
+        plt.plot(xvals, self.get_fit(xvals), c='red', label='fit')
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.legend(frameon=False)
@@ -226,7 +225,7 @@ class Map:
         if self.xdata is None or self.ydata is None:
             raise ValueError(
                 "You must have xdata and ydata to display a 2D histogram.")
-        if self.xvals is None:
+        if xvals is None:
             xvals = np.linspace(min(self.xdata), max(self.xdata), 100)
         fig = plt.figure(**kwargs)
         plt.hist2d(self.xdata, self.ydata, bins=bins, cmap=cmap, density=True)
