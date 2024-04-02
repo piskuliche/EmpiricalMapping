@@ -287,6 +287,7 @@ class Map:
         return line_start + popt_str + " & $ " + r_str + " $ & $ " + rmse_str + line_end
 
     def display_map(self, xvals=None, **kwargs):
+        # sourcery skip: class-extract-method
         """ Display the data and the fit on a plot.
 
         """
