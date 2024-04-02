@@ -227,6 +227,7 @@ class Map:
                 "You must have xdata and ydata to display a 2D histogram.")
         if xvals is None:
             xvals = np.linspace(min(self.xdata), max(self.xdata), 100)
+
         fig = plt.figure(**kwargs)
         plt.hist2d(self.xdata, self.ydata, bins=bins, cmap=cmap, density=True)
         plt.plot(xvals, self.get_fit(xvals), c='red', label='fit')
@@ -348,7 +349,18 @@ class FullMap:
             if display:
                 self.maps[label].display_map(**kwargs)
             if histdisplay:
-                self.maps[label].display_hist2d_map(**kwargs)
+                if 'bins' in kwargs:
+                    bins = kwargs['bins']
+                    del kwargs['bins']
+                if 'cmap' in kwargs:
+                    cmap = kwargs['cmap']
+                    del kwargs['cmap']
+                if bins is None:
+                    bins = (100, 100)
+                if cmap is None:
+                    cmap = 'Blues'
+                self.maps[label].display_hist2d_map(
+                    bins=bins, cmap=cmap, **kwargs)
         return
 
     def add_fit_guess(self, label, guess):
