@@ -212,6 +212,28 @@ class Map:
         plt.show()
         return
 
+    def display_hist2d_map(self, bins=(100, 100), cmap='Blues', **kwargs):
+        """ Display a 2D histogram of the data.
+
+        Parameters:
+        -----------
+        bins: tuple
+            The bins for the histogram.
+        cmap: str or Colormap
+            The colormap for the histogram.
+
+        """
+        if self.xdata is None or self.ydata is None:
+            raise ValueError(
+                "You must have xdata and ydata to display a 2D histogram.")
+        fig = plt.figure(**kwargs)
+        plt.hist2d(self.xdata, self.ydata, bins=bins, cmap=cmap, density=True)
+        plt.xlabel(self.xlabel)
+        plt.ylabel(self.ylabel)
+        plt.colorbar()
+        plt.show()
+        return
+
     def get_fit(self, xdata):
         """ Return the fit for a given xdata.
 
@@ -305,7 +327,7 @@ class FullMap:
         self._test_existence(label)
         self.maps[label].fit_to_poly(self.order[label])
 
-    def report_maps(self, display=False, **kwargs):
+    def report_maps(self, display=False, histdisplay=False, **kwargs):
         """
         Report all maps in the FullMap object.
 
@@ -323,6 +345,8 @@ class FullMap:
             self.maps[label].report_map()
             if display:
                 self.maps[label].display_map(**kwargs)
+            if histdisplay:
+                self.maps[label].display_hist2d_map(**kwargs)
         return
 
     def add_fit_guess(self, label, guess):
