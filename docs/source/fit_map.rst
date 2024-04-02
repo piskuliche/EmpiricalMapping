@@ -1,5 +1,5 @@
 -----------------
-Collate Map Class
+Fit Map Class
 -----------------
 
 .. automodule:: empmap.fit_map

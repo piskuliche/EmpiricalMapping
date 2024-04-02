@@ -15,7 +15,8 @@ how to  the project.
    :maxdepth: 1
    :caption: Contents:
 
-   collate_map
+   collect_map_data
+   fit_map
    constants
    emp_setup
    gauss_logfile
