@@ -196,7 +196,7 @@ class Map:
         if len(self.popt) == 2:
             print(f"{self.ylabel} = {self.popt[0]:10.10f} + {self.popt[1]:10.10f} {self.xlabel} & " +
                   f"{np.sqrt(self.calculate_r_squared())} & " +
-                  f"{np.sqrt(np.sum(self.calculate_fit_error()**2)) / (len(self.xdata)-len(self.popt))}")
+                  f"{self.calculate_rmse()}")
         else:
             print(f"{self.ylabel} = {self.popt[0]:10.10f} + {self.popt[1]:10.10f} {self.xlabel} + {self.popt[2]:10.10f} {self.xlabel}^2 & " +
                   f"{np.sqrt(self.calculate_r_squared())} & " +
