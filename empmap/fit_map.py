@@ -149,6 +149,19 @@ class Map:
                 "You must fit the data to a polynomial before calculating the R^2 value.")
         return 1 - (np.sum(self.calculate_fit_error()**2) / np.sum((self.ydata - np.mean(self.ydata))**2))
 
+    def calculate_rmse(self):
+        """ Calculate the RMSE value of the fit.
+
+        Returns:
+        --------
+        rmse: float
+            The RMSE value of the fit.
+        """
+        if self.popt is None:
+            raise ValueError(
+                "You must fit the data to a polynomial before calculating the RMSE value.")
+        return np.sqrt(np.sum(self.calculate_fit_error()**2) / (len(self.xdata)-len(self.popt)))
+
     def report_map(self):
         """ Print a report of the fit to the console.
 
@@ -169,8 +182,7 @@ class Map:
         if self.ydata is not None:
             print("R value: ", np.sqrt(self.calculate_r_squared()))
             print("R^2 value: ", self.calculate_r_squared())
-            print("RMSE: ", np.sqrt(np.sum(self.calculate_fit_error()**2)) /
-                  (len(self.xdata)-len(self.popt)))
+            print("RMSE: ", self.calculate_rmse())
         print("*** ******** ***")
         return
 
@@ -188,8 +200,91 @@ class Map:
         else:
             print(f"{self.ylabel} = {self.popt[0]:10.10f} + {self.popt[1]:10.10f} {self.xlabel} + {self.popt[2]:10.10f} {self.xlabel}^2 & " +
                   f"{np.sqrt(self.calculate_r_squared())} & " +
-                  f"{np.sqrt(np.sum(self.calculate_fit_error()**2)) / (len(self.xdata)-len(self.popt))}")
+                  f"{self.calculate_rmse()}")
         return
+
+    @staticmethod
+    def _format_scientific_latex(sci_number):
+        import re
+        if 'e' not in sci_number:
+            return sci_number
+        return re.sub(r"e(-)?(\d+)", r" \\times 10^{\1\2}", sci_number)
+
+    def report_latex_line(self, yunit="\\textrm{cm}^{-1}", xunit='\\textrm{a.u.}', xlabel="E", popt_fmt=None, r_fmt="{:.2f}", rmse_fmt="{:.2f}"):
+        """ This is a function for reporting a line in a latex table associated with this map.
+
+        Parameters:
+        -----------
+        yunit: str
+            The unit for the y-axis.
+        xunit: str
+            The unit for the x-axis.
+        xlabel: str
+            The label for the x-axis.
+        popt_fmt: list
+            The format for the optimal parameters.
+        r_fmt: str
+            The format for the R value.
+        rmse_fmt: str
+            The format for the RMSE value.
+
+        Returns:
+        --------
+        line: str
+            The latex line for the table.
+
+        """
+        if popt_fmt is None:
+            popt_fmt = ["{:.2f}"]*len(self.popt)
+        if len(popt_fmt) != len(self.popt):
+            raise ValueError(
+                "popt_fmt must be the same length as the number of optimal parameters.")
+        if not isinstance(xlabel, str):
+            xlabel = str(xlabel)
+
+        # Strip the $ from the ylabel
+        ylabel = self.ylabel.replace("$", "")
+        if "~" in ylabel:
+            ylabel = ylabel.split("~")[0]
+        line_start = f"${ylabel} = "
+
+        # Build the first column of the line
+        popt_str = ""
+        for i, p in enumerate(self.popt):
+            fmt_p = popt_fmt[i].format(p)
+            if "e" in fmt_p:  # formats in 10^{x} notation for latex
+                fmt_p = self._format_scientific_latex(fmt_p)
+            if i == 0:
+                unit = f" \\left[{yunit}\\right] "
+                popt_str += f"{fmt_p} {unit}"
+            elif i == 1:
+                unit = f" \\left[\\frac{{{yunit}}}{{{xunit}}}\\right] "
+                popt_str += (
+                    f"  {fmt_p} {unit} {xlabel}"
+                    if "-" in fmt_p[0]
+                    else f" + {fmt_p} {unit} {xlabel}"
+                )
+            else:
+                unit = f" \\left[\\frac{{{yunit}}}{{{xunit}^{i}}}\\right] "
+                popt_str += (
+                    f"  {fmt_p} {unit} {xlabel}^{i}"
+                    if "-" in fmt_p[0]
+                    else f" + {fmt_p} {unit} {xlabel}^{i}"
+                )
+        popt_str += "$"
+
+        r = np.sqrt(self.calculate_r_squared())
+        r_str = r_fmt.format(r)
+        if "e" in r_str:
+            r_str = self._format_scientific_latex(r_str)
+
+        rmse = self.calculate_rmse()
+        rmse_str = rmse_fmt.format(rmse)
+        if "e" in rmse_str:
+            rmse_str = self._format_scientific_latex(rmse_str)
+
+        line_end = "$ \\\\"
+        return line_start + popt_str + " & $ " + r_str + " $ & $ " + rmse_str + line_end
 
     def display_map(self, xvals=None, **kwargs):
         """ Display the data and the fit on a plot.
@@ -343,18 +438,24 @@ class FullMap:
             This really supplies keyword arguments to plt.figure(), so dpi=x, figsize=(x,y) etc.
 
         """
+
+        # Handle arguments
+        bins = None
+        cmap = None
+        if 'bins' in kwargs:
+            bins = kwargs['bins']
+            del kwargs['bins']
+        if 'cmap' in kwargs:
+            cmap = kwargs['cmap']
+            del kwargs['cmap']
+
         for label in self.maps.keys():
             print(f"Map: {label}")
             self.maps[label].report_map()
+
             if display:
                 self.maps[label].display_map(**kwargs)
             if histdisplay:
-                if 'bins' in kwargs:
-                    bins = kwargs['bins']
-                    del kwargs['bins']
-                if 'cmap' in kwargs:
-                    cmap = kwargs['cmap']
-                    del kwargs['cmap']
                 if bins is None:
                     bins = (100, 100)
                 if cmap is None:
@@ -410,6 +511,40 @@ class FullMap:
         """
         self._test_existence(label)
         self.maps[label].fit_keywords[keyword] = value
+        return
+
+    def report_latex_table(self):
+        """ Print a latex table of the fits to the console. Note - uses default parameters.
+
+        """
+        lines = [
+            "\\begin{table}[h]",
+            "\\centering",
+            "\\begin{tabular}{l c c}",
+            "\\hline",
+            "Map & Fit & RMSE \\\\",
+            "\\hline",
+        ]
+        for map in self.maps:
+            if 'x' in map:
+                line = self.maps[map].report_latex_line(xlabel="\omega_{10}",
+                                                        xunit="\\textrm{cm}^{-1}", yunit='\\AA', popt_fmt=["{:.4f}", "{:.4e}"], rmse_fmt="{:.4e}")
+            elif "mu" in map:
+                line = self.maps[map].report_latex_line(
+                    xlabel="E", yunit="\\textrm{D}", rmse_fmt="{:.4e}")
+            elif "iso" in map:
+                line = self.maps[map].report_latex_line(
+                    xlabel="E", yunit="\\textrm{a.u.}", rmse_fmt="{:.4e}")
+            else:
+                line = self.maps[map].report_latex_line(
+                    xlabel="E", yunit="\\textrm{cm}^{-1}", rmse_fmt="{:.4e}")
+            lines.append(line)
+        lines.extend(("\\hline",
+                      "\\end{tabular}",
+                      "\\end{table}"))
+
+        for line in lines:
+            print(line)
         return
 
     def _test_existence(self, label):
