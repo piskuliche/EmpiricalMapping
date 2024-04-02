@@ -1,4 +1,5 @@
 bin/
+deprecated/
 */__pycache__/
 */__pycache__/*
 traj_ex/*
