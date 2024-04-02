@@ -212,7 +212,7 @@ class Map:
         plt.show()
         return
 
-    def display_hist2d_map(self, bins=(100, 100), cmap='Blues', **kwargs):
+    def display_hist2d_map(self, xvals=None, bins=(100, 100), cmap='Blues', **kwargs):
         """ Display a 2D histogram of the data.
 
         Parameters:
@@ -226,8 +226,11 @@ class Map:
         if self.xdata is None or self.ydata is None:
             raise ValueError(
                 "You must have xdata and ydata to display a 2D histogram.")
+        if self.xvals is None:
+            xvals = np.linspace(min(self.xdata), max(self.xdata), 100)
         fig = plt.figure(**kwargs)
         plt.hist2d(self.xdata, self.ydata, bins=bins, cmap=cmap, density=True)
+        plt.plot(xvals, self.get_fit(xvals), c='red', label='fit')
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.colorbar()
