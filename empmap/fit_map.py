@@ -294,7 +294,11 @@ class Map:
         if self.popt is None:
             raise ValueError(
                 "You must fit the data to a polynomial before displaying the map.")
-        fig = plt.figure(**kwargs)
+
+        figure_args = {key: kwargs.pop(key) for key in [
+            'figsize', 'dpi'] if key in kwargs}
+
+        fig = plt.figure(**figure_args)
         if self.xdata is not None:
             plt.scatter(self.xdata, self.ydata, c='black', label='data')
         if xvals is None and self.xdata is not None:
@@ -307,7 +311,7 @@ class Map:
         plt.show()
         return
 
-    def display_hist2d_map(self, xvals=None, bins=(100, 100), cmap='Blues', **kwargs):
+    def display_hist2d_map(self, xvals=None, **kwargs):
         """ Display a 2D histogram of the data.
 
         Parameters:
@@ -324,13 +328,27 @@ class Map:
         if xvals is None:
             xvals = np.linspace(min(self.xdata), max(self.xdata), 100)
 
-        fig = plt.figure(**kwargs)
-        plt.hist2d(self.xdata, self.ydata, bins=bins, cmap=cmap, density=True)
+        figure_args = {key: kwargs.pop(key) for key in [
+            'figsize', 'dpi'] if key in kwargs}
+        hist2d_args = {key: kwargs.pop(key) for key in [
+            'cmap', 'bins', 'density', 'range'] if key in kwargs}
+
+        save = kwargs.pop('save', False)
+        label = kwargs.pop('label', 'hist2d')
+        extra_label = kwargs.pop('extra_label', '')
+
+        fig = plt.figure(**figure_args)
+        plt.hist2d(self.xdata, self.ydata, **hist2d_args)
         plt.plot(xvals, self.get_fit(xvals), c='red', label='fit')
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.colorbar()
-        plt.show()
+        plt.tight_layout()
+        if save:
+            plt.savefig(f"{extra_label}{label}.png")
+        else:
+            plt.show()
+
         return
 
     def get_fit(self, xdata):
@@ -443,12 +461,6 @@ class FullMap:
         # Handle arguments
         bins = None
         cmap = None
-        if 'bins' in kwargs:
-            bins = kwargs['bins']
-            del kwargs['bins']
-        if 'cmap' in kwargs:
-            cmap = kwargs['cmap']
-            del kwargs['cmap']
 
         for label in self.maps.keys():
             print(f"Map: {label}")
@@ -461,8 +473,7 @@ class FullMap:
                     bins = (100, 100)
                 if cmap is None:
                     cmap = 'Blues'
-                self.maps[label].display_hist2d_map(
-                    bins=bins, cmap=cmap, **kwargs)
+                self.maps[label].display_hist2d_map(label=label, **kwargs)
         return
 
     def add_fit_guess(self, label, guess):
@@ -512,6 +523,46 @@ class FullMap:
         """
         self._test_existence(label)
         self.maps[label].fit_keywords[keyword] = value
+        return
+
+    def write_map_file(self, filename="empirical_map.in", pol_ratio=5.6, vibrational_lifetime=700):
+        """
+        Write the maps to a file.
+
+        Parameters:
+        -----------
+        filename: str
+            The name of the file to write the maps to.
+
+        """
+        w10 = self.maps['w10'].popt
+        w21 = self.maps['w21'].popt
+        dmu = self.maps['dmu_alt'].popt
+        pol = self.maps['diso_pol'].popt
+        x10 = self.maps['x10'].popt
+        x21 = self.maps['x21'].popt
+
+        if len(dmu == 2):
+            dmu = np.append(dmu, 0)
+
+        with open(filename, 'w') as f:
+            f.write("w10 map (a b c)\n")
+            f.write(f"{w10[0]:.2f} {w10[1]:2.f} {w10[2]:.2f}\n")
+            f.write("w21 map (a b c)\n")
+            f.write(f"{w21[0]:.2f} {w21[1]:.2f} {w21[2]:.2f}\n")
+            f.write("dmu map (a b c)\n")
+            f.write(f"{dmu[0]:.2f} {dmu[1]:.2f} {dmu[2]:.2f}\n")
+            f.write("x10 map (a b)\n")
+            f.write(f"{x10[0]:.4f} {x10[1]:.2e}\n")
+            f.write("x21 map (a b)\n")
+            f.write(f"{x21[0]:.4f} {x21[1]:.2e}\n")
+            f.write("pol map (a b)\n")
+            f.write(f"{pol[0]:.2f} {pol[1]:.2f}\n")
+            f.write("ratio parallel to perpendicular\n")
+            f.write(f"{pol_ratio}\n")
+            f.write("Vibrational Lifetime (fs)\n")
+            f.write(f"{vibrational_lifetime}\n")
+
         return
 
     def report_latex_table(self):
