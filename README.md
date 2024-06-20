@@ -1,5 +1,9 @@
 # Empirical Mapper
 
+Copyright Zeke Piskulich, Qiang Cui, Boston Univerisity 2024.
+
+Adapted with permission from codes originally written by Prof. Ward H. Thompson, University of Kansas.
+
 ## Installation
 
 Eventually I hope to get this released on PyPi, but for now it is only installable by downloading the repo and installing it into Python manually.
