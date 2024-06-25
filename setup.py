@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='empirical-mapper',
     version='0.1',
-    packages=find_packages('empmap'),
+    packages=find_packages(),
     url='http://github.com/piskuliche/empirical-mapper',
     license='MIT',
     author='Zeke Piskulich',

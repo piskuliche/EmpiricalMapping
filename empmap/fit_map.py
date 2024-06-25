@@ -547,7 +547,7 @@ class FullMap:
 
         with open(filename, 'w') as f:
             f.write("w10 map (a b c)\n")
-            f.write(f"{w10[0]:.2f} {w10[1]:2.f} {w10[2]:.2f}\n")
+            f.write(f"{w10[0]:.2f} {w10[1]:.2f} {w10[2]:.2f}\n")
             f.write("w21 map (a b c)\n")
             f.write(f"{w21[0]:.2f} {w21[1]:.2f} {w21[2]:.2f}\n")
             f.write("dmu map (a b c)\n")
